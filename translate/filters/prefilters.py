@@ -75,9 +75,9 @@ def varname(variable, startmarker, endmarker):
     if startmarker is None:
         return variable[:variable.rfind(endmarker)]
     elif endmarker is None:
-        return variable[variable.find(startmarker)+len(startmarker):]
+        return variable[(variable.find(startmarker) + len(startmarker)):]
     else:
-        return variable[variable.find(startmarker)+len(startmarker):variable.rfind(endmarker)]
+        return variable[(variable.find(startmarker) + len(startmarker)):variable.rfind(endmarker)]
 
 
 def varnone(variable, startmarker, endmarker):

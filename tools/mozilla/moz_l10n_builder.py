@@ -360,7 +360,7 @@ def post_po2moz_hacks(lang, buildlang):
         dir, filename = os.path.split(filename)
 
         if dir.startswith(enUS):
-            dir = dir[len(enUS)+1:]
+            dir = dir[(len(enUS) + 1):]
 
         if os.path.isfile(join(enUS, dir, filename)):
             try:

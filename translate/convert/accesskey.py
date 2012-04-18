@@ -51,9 +51,9 @@ def extract(string, accesskey_marker=DEFAULT_ACCESSKEY_MARKER):
             if marker_pos == len(string):
                 break
             if (accesskey_marker == '&' and
-                XMLEntityPlaceable.regex.match(string[marker_pos-1:])):
+                XMLEntityPlaceable.regex.match(string[(marker_pos - 1):])):
                 continue
-            label = string[:marker_pos-1] + string[marker_pos:]
+            label = string[:(marker_pos - 1)] + string[marker_pos:]
             accesskey = string[marker_pos]
             break
     return label, accesskey

@@ -83,7 +83,7 @@ def read_prevmsgid_lines(parse_state):
     while startswith(next_line, '#| ') or startswith(next_line, '| '):
         content = parse_state.read_line()
         prefix_len = content.index('| ')
-        content = content[prefix_len+2:]
+        content = content[(prefix_len + 2):]
         append(prevmsgid_lines, content)
         next_line = parse_state.next_line
     return prevmsgid_lines
@@ -181,7 +181,7 @@ def parse_quoted(parse_state, start_pos=0):
     if left == start_pos or isspace(line[start_pos:left]):
         right = rfind(line, '"')
         if left != right:
-            return parse_state.read_line()[left:right+1]
+            return parse_state.read_line()[left:(right + 1)]
         else:
             # There is no terminating quote, so we append an extra quote, but
             # we also ignore the newline at the end (therefore the -1)

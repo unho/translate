@@ -67,7 +67,7 @@ class PoXliffUnit(xliff.xliffunit):
             if not super(PoXliffUnit, self).__eq__(other):
                 return False
             for i in range(len(self.units) - 1):
-                if not self.units[i+1] == other.units[i+1]:
+                if not self.units[i + 1] == other.units[i + 1]:
                     return False
             return True
         if len(self.units) <= 1:

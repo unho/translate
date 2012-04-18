@@ -72,7 +72,7 @@ class reoo:
         # but we handle multiple ones just to be safe...
         for location in locations:
             subkeypos = location.rfind('.')
-            subkey = location[subkeypos+1:]
+            subkey = location[(subkeypos + 1):]
             key = location[:subkeypos]
             # this is just to handle our old system of using %s/%s:%s instead of %s/%s#%s
             key = key.replace(':', '#')

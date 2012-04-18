@@ -116,11 +116,11 @@ class dtd2po:
                 if idstart == -1:
                     continue
                 idend = locnote.find(')', (idstart + 1))
-                entity = locnote[idstart+1:idend].strip()
+                entity = locnote[(idstart + 1):idend].strip()
                 # parse the actual note
                 actualnotestart = locnote.find(':', (idend + 1))
                 actualnoteend = locnote.find('-->', idend)
-                actualnote = locnote[actualnotestart+1:actualnoteend].strip()
+                actualnote = locnote[(actualnotestart + 1):actualnoteend].strip()
                 # if it's for this entity, process it
                 if thedtd.entity == entity:
                     # if it says don't translate (and nothing more),
@@ -187,7 +187,7 @@ class dtd2po:
                         if (entitybase + akeytype) in thedtdfile.index:
                             # add both versions to the list of mixed entities
                             self.mixedentities[entity] = {}
-                            self.mixedentities[entitybase+akeytype] = {}
+                            self.mixedentities[entitybase + akeytype] = {}
                     # check if this could be a mixed entity (labelsuffix and
                     # ".accesskey")
 

@@ -124,7 +124,7 @@ def removeinvalidamps(name, value):
         warnings.warn("invalid ampersands in dtd entity %s" % (name))
         adjustment = 0
         for amppos in invalid_amps:
-            value = value[:amppos-adjustment] + value[amppos-adjustment+1:]
+            value = value[:(amppos - adjustment)] + value[(amppos - adjustment + 1):]
             adjustment += 1
     return value
 
@@ -349,7 +349,7 @@ class dtdunit(base.TranslationUnit):
                     self.entityhelp = (0, self.entityhelp[1])
                     self.definition += defpart
                     if not self.instring:
-                        self.closing = line[e+len(defpart):].rstrip("\n\r")
+                        self.closing = line[(e + len(defpart)):].rstrip("\n\r")
                         self.inentity = False
                         break
 

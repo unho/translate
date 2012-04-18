@@ -41,7 +41,7 @@ def spaceend(str1):
     """returns all the whitespace from the end of the string"""
     newstring = u""
     for n in range(len(str1)):
-        c = str1[-1-n]
+        c = str1[-1 - n]
         if c.isspace():
             newstring = c + newstring
         else:
@@ -66,7 +66,7 @@ def puncend(str1, punctuation):
 
     newstring = u""
     for n in range(len(str1)):
-        c = str1[-1-n]
+        c = str1[-1 - n]
         if c in punctuation or c.isspace():
             newstring = c + newstring
         else:

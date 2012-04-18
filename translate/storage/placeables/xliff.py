@@ -91,7 +91,7 @@ class UnknownXML(StringElem):
         ``self.xml_node.tag``."""
         tag = self.xml_node.tag
         if tag.startswith('{'):
-            tag = tag[tag.index('}')+1:]
+            tag = tag[(tag.index('}') + 1):]
 
         elemstr = ', '.join([repr(elem) for elem in self.sub])
 

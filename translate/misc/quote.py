@@ -74,7 +74,7 @@ def extract(source, startdelim, enddelim,
     else:
         enddelim_places = [pos + lenend for pos in enddelim_places]
     # Get a unique sorted list of the significant places in the string
-    significant_places = [0] + startdelim_places + enddelim_places + [len(source)-1]
+    significant_places = [0] + startdelim_places + enddelim_places + [len(source) - 1]
     significant_places.sort()
     extracted = ""
     lastpos = None
@@ -132,7 +132,7 @@ def extractwithoutquotes(source, startdelim, enddelim, escape=None,
     else:
         enddelim_places = [pos + lenend for pos in enddelim_places]
     # get a unique sorted list of the significant places in the string
-    significant_places = [0] + startdelim_places + enddelim_places + [len(source)-1]
+    significant_places = [0] + startdelim_places + enddelim_places + [len(source) - 1]
     significant_places.sort()
     extracted = ""
     lastpos = 0

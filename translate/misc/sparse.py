@@ -130,7 +130,7 @@ class SimpleParser:
             foundtoken = 0
             for token in tokenlist:
                 lentoken = len(token)
-                if text[pos:pos+lentoken] == token:
+                if text[pos:(pos + lentoken)] == token:
                     if laststart < pos:
                         tokens.append(text[laststart:pos])
                     tokens.append(token)

@@ -213,14 +213,14 @@ class phpfile(base.TranslationStore):
             if commentstartpos != -1:
                 incomment = True
                 if commentendpos != -1:
-                    newunit.addnote(line[commentstartpos:commentendpos+2],
+                    newunit.addnote(line[commentstartpos:(commentendpos + 2)],
                                     "developer")
                     incomment = False
                 else:
                     newunit.addnote(line[commentstartpos:],
                                     "developer")
             if commentendpos != -1 and incomment:
-                newunit.addnote(line[:commentendpos+2], "developer")
+                newunit.addnote(line[:(commentendpos + 2)], "developer")
                 incomment = False
             if incomment and commentstartpos == -1:
                 newunit.addnote(line, "developer")
@@ -243,10 +243,10 @@ class phpfile(base.TranslationStore):
                 newunit.addnote(line.strip(), "developer")
                 continue
             if equalpos != -1 and not invalue:
-                valuequote = line[equalpos+len(equaldel):].lstrip()[0]
+                valuequote = line[(equalpos + len(equaldel)):].lstrip()[0]
                 if valuequote in ['"', "'"]:
                     newunit.addlocation(prename + line[:equalpos].strip())
-                    value = line[equalpos+len(equaldel):].lstrip()[1:]
+                    value = line[(equalpos + len(equaldel)):].lstrip()[1:]
                     lastvalue = ""
                     invalue = True
             else:
@@ -254,15 +254,15 @@ class phpfile(base.TranslationStore):
                     value = line
             colonpos = value.rfind(enddel)
             while colonpos != -1:
-                if value[colonpos-1] == valuequote:
-                    newunit.value = lastvalue + value[:colonpos-1]
+                if value[colonpos - 1] == valuequote:
+                    newunit.value = lastvalue + value[:(colonpos - 1)]
                     newunit.escape_type = valuequote
                     lastvalue = ""
                     invalue = False
                 if not invalue and colonpos != (len(value) - 1):
                     commentinlinepos = value.find("//", colonpos)
                     if commentinlinepos != -1:
-                        newunit.addnote(value[commentinlinepos+2:].strip(),
+                        newunit.addnote(value[(commentinlinepos + 2):].strip(),
                                         "developer")
                 if not invalue:
                     self.addunit(newunit)

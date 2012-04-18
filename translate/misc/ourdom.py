@@ -221,7 +221,7 @@ class ExpatBuilderNS(expatbuilder.ExpatBuilderNS):
             _attrsNS = node._attrsNS
             for i in range(0, len(attributes), 2):
                 aname = attributes[i]
-                value = attributes[i+1]
+                value = attributes[i + 1]
                 if ' ' in aname:
                     uri, localname, prefix, qname = expatbuilder._parse_ns_name(self, aname)
                     a = minidom.Attr(qname, uri, localname, prefix)

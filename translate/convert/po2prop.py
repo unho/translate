@@ -82,9 +82,9 @@ class reprop:
                 key = self.personality.key_strip(line[:delimiter_pos])
                 # Calculate space around the equal sign
                 prespace = line[line.find(' ', len(key)):delimiter_pos]
-                postspacestart = len(line[delimiter_pos+1:])
-                postspaceend = len(line[delimiter_pos+1:].lstrip())
-                postspace = line[delimiter_pos+1:delimiter_pos+(postspacestart-postspaceend)+1]
+                postspacestart = len(line[(delimiter_pos + 1):])
+                postspaceend = len(line[(delimiter_pos + 1):].lstrip())
+                postspace = line[(delimiter_pos + 1):(delimiter_pos + (postspacestart - postspaceend) + 1)]
                 delimiter = prespace + delimiter_char + postspace
             if key in self.inputstore.locationindex:
                 unit = self.inputstore.locationindex[key]

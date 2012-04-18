@@ -82,7 +82,7 @@ class MozConvertOptionParser(convert.ArchiveConvertOptionParser):
         if s == -1:
             return (inputpath, "")
         root = os.path.join(d, n[:s])
-        ext = n[s+1:]
+        ext = n[(s + 1):]
         return (root, ext)
 
     def recursiveprocess(self, options):

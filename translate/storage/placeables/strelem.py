@@ -329,7 +329,7 @@ class StringElem(object):
             elif range_nodes[i] is end['elem']:
                 endidx = i
                 break
-        range_nodes = range_nodes[startidx:endidx+1]
+        range_nodes = range_nodes[startidx:(endidx + 1)]
         #assert (range_nodes[0] is start['elem'] and
         #        range_nodes[-1] is end['elem'])
         #logging.debug("Nodes in delete range: %s" % (str(range_nodes)))
@@ -849,13 +849,13 @@ class StringElem(object):
 
                     for i in range(len(elem.sub) - 1):
                         lsub = elem.sub[i]
-                        rsub = elem.sub[i+1]
+                        rsub = elem.sub[i + 1]
 
                         if (type(lsub) is StringElem and
                             type(rsub) is StringElem):
                             changed = True
                             lsub.sub.extend(rsub.sub)
-                            del elem.sub[i+1]
+                            del elem.sub[i + 1]
                             leafchanged = True
                             break
 

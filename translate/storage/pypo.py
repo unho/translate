@@ -57,7 +57,7 @@ def escapeforpo(line):
     last_location = 0
     for location in special_locations:
         escaped_line += line[last_location:location]
-        escaped_line += po_escape_map[line[location:location+1]]
+        escaped_line += po_escape_map[line[location:(location + 1)]]
         last_location = location + 1
     escaped_line += line[last_location:]
     return escaped_line
@@ -76,7 +76,7 @@ def wrapline(line):
         for index, line in enumerate(wrappedlines[1:]):
             if line.startswith(' '):
                 # Remove the space at the beginning of the line:
-                wrappedlines[index+1] = line[1:]
+                wrappedlines[index + 1] = line[1:]
 
                 # Append a space to the previous line:
                 wrappedlines[index] += ' '
@@ -129,7 +129,7 @@ def extractstr(string):
     left = string.find('"')
     right = string.rfind('"')
     if right > -1:
-        return string[left:right+1]
+        return string[left:(right + 1)]
     else:
         return string[left:] + '"'
 

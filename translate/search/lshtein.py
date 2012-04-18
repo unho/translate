@@ -41,11 +41,11 @@ def python_distance(a, b, stopvalue=-1):
         previous, current = current, ([i] + [0] * l1)
         least = l2
         for j in range(1, l1 + 1):
-            change = previous[j-1]
-            if a[j-1] != b[i-1]:
+            change = previous[j - 1]
+            if a[j - 1] != b[i - 1]:
                 change = change + 1
             insert = previous[j] + 1
-            delete = current[j-1] + 1
+            delete = current[j - 1] + 1
             current[j] = min(insert, delete, change)
             if least > current[j]:
                 least = current[j]

@@ -124,7 +124,7 @@ class TestConvertCommand:
         assert (usageline.startswith("Usage: ") or usageline.startswith("usage: ")) \
             and "[--version] [-h|--help]" in usageline
         options = help_string[help_string.find("ptions:\n"):]
-        options = options[options.find("\n")+1:]
+        options = options[(options.find("\n") + 1):]
         options = self.help_check(options, "--progress=PROGRESS")
         options = self.help_check(options, "--version")
         options = self.help_check(options, "-h, --help")

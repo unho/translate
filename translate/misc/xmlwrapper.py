@@ -56,7 +56,7 @@ def makefixtagproc(namespacemap):
 
 def splitnamespace(fulltag):
     if '{' in fulltag:
-        namespace = fulltag[fulltag.find('{'):fulltag.find('}')+1]
+        namespace = fulltag[fulltag.find('{'):(fulltag.find('}') + 1)]
     else:
         namespace = ""
     tag = fulltag.replace(namespace, "", 1)

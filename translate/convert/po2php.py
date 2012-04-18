@@ -62,7 +62,7 @@ class rephp:
             # see if there's more
             endpos = line.rfind("%s%s" % (self.quotechar, self.enddel))
             # if there was no '; or the quote is escaped, we have to continue
-            if endpos >= 0 and line[endpos-1] != '\\':
+            if endpos >= 0 and line[endpos - 1] != '\\':
                 self.inmultilinemsgid = False
             # if we're echoing...
             if self.inecho:
@@ -99,14 +99,14 @@ class rephp:
                 lookupkey = self.prename + key.lstrip()
                 # Calculate space around the equal sign
                 prespace = line[len(line[:equalspos].rstrip()):equalspos]
-                postspacestart = len(line[equalspos+len(self.equaldel):])
-                postspaceend = len(line[equalspos+len(self.equaldel):].lstrip())
-                postspace = line[equalspos+len(self.equaldel):equalspos+(postspacestart-postspaceend)+len(self.equaldel)]
-                self.quotechar = line[equalspos+(postspacestart-postspaceend)+len(self.equaldel)]
+                postspacestart = len(line[(equalspos + len(self.equaldel)):])
+                postspaceend = len(line[(equalspos + len(self.equaldel)):].lstrip())
+                postspace = line[(equalspos + len(self.equaldel)):(equalspos + (postspacestart - postspaceend) + len(self.equaldel))]
+                self.quotechar = line[equalspos + (postspacestart - postspaceend) + len(self.equaldel)]
                 inlinecomment_pos = line.rfind("%s%s" % (self.quotechar,
                                                          self.enddel))
                 if inlinecomment_pos > -1:
-                    inlinecomment = line[inlinecomment_pos+2:]
+                    inlinecomment = line[(inlinecomment_pos + 2):]
                 else:
                     inlinecomment = ""
                 if lookupkey in self.inputstore.locationindex:
@@ -134,7 +134,7 @@ class rephp:
                 endpos = line.rfind("%s%s" % (self.quotechar, self.enddel))
                 # if there was no '; or the quote is escaped, we have to
                 # continue
-                if endpos == -1 or line[endpos-1] == '\\':
+                if endpos == -1 or line[endpos - 1] == '\\':
                     self.inmultilinemsgid = True
         if isinstance(returnline, unicode):
             returnline = returnline.encode('utf-8')

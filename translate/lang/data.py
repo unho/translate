@@ -292,7 +292,7 @@ def _fix_language_name(name):
         # translation of ISO codes suggests these as the upper bounds.
         split_point = name[5:].find(u';')
         if split_point >= 0:
-            return name[:5+split_point]
+            return name[:(5 + split_point)]
     return name
 
 

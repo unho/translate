@@ -150,7 +150,7 @@ def _find_delimiter(line, delimiters):
         prewhitespace = len(line) - len(line.lstrip())
         pos = line.find(delimiter, prewhitespace)
         while pos != -1:
-            if delimiters[delimiter] == -1 and line[pos-1] != u"\\":
+            if delimiters[delimiter] == -1 and line[pos - 1] != u"\\":
                 delimiters[delimiter] = pos
                 break
             pos = line.find(delimiter, pos + 1)
@@ -226,7 +226,7 @@ def _key_strip(key):
     newkey = key.rstrip()
     # If line now end in \ we put back the whitespace that was escaped
     if newkey[-1:] == "\\":
-        newkey += key[len(newkey):len(newkey)+1]
+        newkey += key[len(newkey):(len(newkey) + 1)]
     return newkey.lstrip()
 
 dialects = {}
@@ -331,7 +331,7 @@ class DialectStrings(Dialect):
         newkey = key.rstrip().rstrip('"')
         # If line now end in \ we put back the char that was escaped
         if newkey[-1:] == "\\":
-            newkey += key[len(newkey):len(newkey)+1]
+            newkey += key[len(newkey):(len(newkey) + 1)]
         return newkey.lstrip().lstrip('"')
     key_strip = classmethod(key_strip)
 
@@ -340,7 +340,7 @@ class DialectStrings(Dialect):
         newvalue = value.rstrip().rstrip(';').rstrip('"')
         # If line now end in \ we put back the char that was escaped
         if newvalue[-1:] == "\\":
-            newvalue += value[len(newvalue):len(newvalue)+1]
+            newvalue += value[len(newvalue):(len(newvalue) + 1)]
         return newvalue.lstrip().lstrip('"')
     value_strip = classmethod(value_strip)
 
@@ -517,11 +517,11 @@ class propfile(base.TranslationStore):
                     newunit = propunit("", self.personality.name)
                 else:
                     newunit.name = self.personality.key_strip(line[:delimiter_pos])
-                    if is_line_continuation(line[delimiter_pos+1:].lstrip()):
+                    if is_line_continuation(line[(delimiter_pos + 1):].lstrip()):
                         inmultilinevalue = True
-                        newunit.value = line[delimiter_pos+1:].lstrip()[:-1]
+                        newunit.value = line[(delimiter_pos + 1):].lstrip()[:-1]
                     else:
-                        newunit.value = self.personality.value_strip(line[delimiter_pos+1:])
+                        newunit.value = self.personality.value_strip(line[(delimiter_pos + 1):])
                         self.addunit(newunit)
                         newunit = propunit("", self.personality.name)
         # see if there is a leftover one...
