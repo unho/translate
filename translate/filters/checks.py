@@ -287,7 +287,7 @@ class UnitChecker(object):
 
     #: Categories where each checking function falls into
     #: Function names are used as keys, categories are the values
-    categories =  {}
+    categories = {}
 
 
     def __init__(self, checkerconfig=None, excludefilters=None,
@@ -522,7 +522,7 @@ class TeeChecker:
 
     #: Categories where each checking function falls into
     #: Function names are used as keys, categories are the values
-    categories =  {}
+    categories = {}
 
 
     def __init__(self, checkerconfig=None, excludefilters=None,
