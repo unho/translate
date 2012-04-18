@@ -13,6 +13,8 @@ from translate.misc import zipfileext
 
 
 BrokenStringIO = StringIO.StringIO
+
+
 class FixedStringIO(BrokenStringIO):
 
     def truncate(self, size=None):
