@@ -27,13 +27,13 @@ StringIO.StringIO = FixedStringIO
 
 def zipTest(srcname, f, compression, srccontents):
     zip = zipfileext.ZipFileExt(f, "w", compression)   # Create the ZIP archive
-    zip.write(srcname, "another"+os.extsep+"name")
+    zip.write(srcname, "another" + os.extsep + "name")
     zip.write(srcname, srcname)
     zip.close()
 
     zip = zipfileext.ZipFileExt(f, "r", compression)   # Read the ZIP archive
     readData2 = zip.read(srcname)
-    readData1 = zip.read("another"+os.extsep+"name")
+    readData1 = zip.read("another" + os.extsep + "name")
     zip.close()
 
     if readData1 != srccontents or readData2 != srccontents:
@@ -42,8 +42,8 @@ def zipTest(srcname, f, compression, srccontents):
 
 def deleteTest(srcname, f, compression, srccontents):
     zip = zipfileext.ZipFileExt(f, "w", compression)   # Create the ZIP archive
-    othername = "another"+os.extsep+"name"
-    finalname = "adifferent"+os.extsep+"name"
+    othername = "another" + os.extsep + "name"
+    finalname = "adifferent" + os.extsep + "name"
     leftname, deletenames = othername, [srcname, finalname]
     zip.write(srcname, srcname)
     zip.write(srcname, othername)
