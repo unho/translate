@@ -91,7 +91,6 @@ class pocheckfilter:
                                          languagecode=checkerconfig.targetlanguage)
         self.options = options
 
-
     def getfilterdocs(self):
         """Lists the docs for filters available on checker."""
         filterdict = self.checker.getfilters()
@@ -99,7 +98,6 @@ class pocheckfilter:
         filterdocs.sort()
 
         return "\n".join(filterdocs)
-
 
     def filterunit(self, unit):
         """Runs filters on an element."""
@@ -127,7 +125,6 @@ class pocheckfilter:
                 return []
 
         return failures
-
 
     def filterfile(self, transfile):
         """Runs filters on a translation store object.
@@ -173,13 +170,11 @@ class FilterOptionParser(optrecurse.RecursiveOptionParser):
             default=False, callback_kwargs={'dest_value': True},
             callback=self.parse_noinput, help="list filters available")
 
-
     def parse_noinput(self, option, opt, value, parser, *args, **kwargs):
         """This sets an option to *True*, but also sets input to *-*
         to prevent an error."""
         setattr(parser.values, option.dest, kwargs['dest_value'])
         parser.values.input = "-"
-
 
     def run(self):
         """Parses the arguments, and runs recursiveprocess with the
