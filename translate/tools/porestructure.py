@@ -21,8 +21,8 @@
 """Restructure Gettxt PO files produced by poconflicts into the original
 directory tree for merging using pomerge
 
-See: http://translate.sourceforge.net/wiki/toolkit/porestructure for examples and
-usage instructions
+See: http://translate.sourceforge.net/wiki/toolkit/porestructure for examples
+and usage instructions
 """
 
 import os
@@ -36,17 +36,23 @@ class SplitOptionParser(optrecurse.RecursiveOptionParser):
     """a specialized Option Parser for posplit"""
 
     def parse_args(self, args=None, values=None):
-        """parses the command line options, handling implicit input/output args"""
-        (options, args) = optrecurse.RecursiveOptionParser.parse_args(self, args, values)
+        """parses the command line options, handling implicit input/output
+        args"""
+        (options, args) = optrecurse.RecursiveOptionParser \
+                                    .parse_args(self, args, values)
         if not options.output:
             self.error("Output file is rquired")
         return (options, args)
 
     def set_usage(self, usage=None):
-        """sets the usage string - if usage not given, uses getusagestring for each option"""
+        """sets the usage string - if usage not given, uses getusagestring
+        for each option"""
         if usage is None:
-            self.usage = "%prog " + " ".join([self.getusagestring(option) for option in self.option_list]) + \
-            "\n  input directory is searched for PO files with (poconflicts) comments, all entries are written to files in a directory structure for pomerge"
+            self.usage = "%prog " \
+                         " ".join([self.getusagestring(option) for option in self.option_list]) \
+                         "\n  input directory is searched for PO files with " \
+                         "(poconflicts) comments, all entries are written to " \
+                         "files in a directory structure for pomerge"
         else:
             super(SplitOptionParser, self).set_usage(usage)
 
@@ -54,12 +60,15 @@ class SplitOptionParser(optrecurse.RecursiveOptionParser):
         """recurse through directories and process files"""
         if not self.isrecursive(options.output, 'output'):
             try:
-                self.warning("Output directory does not exist. Attempting to create")
-                #TODO: maybe we should only allow it to be created, otherwise we mess up an existing tree...
+                self.warning("Output directory does not exist. "
+                             "Attempting to create")
+                # TODO: maybe we should only allow it to be created,
+                # otherwise we mess up an existing tree.
                 os.mkdir(options.output)
             except:
                 self.error(optrecurse.optparse.OptionValueError("Output directory does not exist, attempt to create failed"))
-        if self.isrecursive(options.input, 'input') and getattr(options, "allowrecursiveinput", True):
+        if (self.isrecursive(options.input, 'input') and
+            getattr(options, "allowrecursiveinput", True)):
             if isinstance(options.input, list):
                 inputfiles = self.recurseinputfilelist(options)
             else:
@@ -78,7 +87,9 @@ class SplitOptionParser(optrecurse.RecursiveOptionParser):
                 success = self.processfile(options, fullinputpath)
             except Exception, error:
                 if isinstance(error, KeyboardInterrupt):
-                    raise self.warning("Error processing: input %s" % (fullinputpath), options, sys.exc_info())
+                    raise self.warning("Error processing: input %s" %
+                                       (fullinputpath),
+                                       options, sys.exc_info())
                 success = False
             self.reportprogress(inputpath, success)
         del self.progressbar
@@ -103,15 +114,21 @@ class SplitOptionParser(optrecurse.RecursiveOptionParser):
                         outputpofile = po.pofile(outputfile)
                     else:
                         outputpofile = po.pofile()
-                    outputpofile.units.append(pounit)   # TODO:perhaps check to see if it's already there...
+                    # TODO:perhaps check to see if it's already there.
+                    outputpofile.units.append(pounit)
                     outputfile = open(fulloutputpath, 'w')
                     outputfile.write(str(outputpofile))
 
 
 def main():
-    #outputfile extentions will actually be determined by the comments in the po files
+    # outputfile extentions will actually be determined by the comments in
+    # the po files
     pooutput = ("po", None)
-    formats = {(None, None): pooutput, ("po", "po"): pooutput, "po": pooutput}
+    formats = {
+        (None, None): pooutput,
+        ("po", "po"): pooutput,
+        "po": pooutput,
+    }
     parser = SplitOptionParser(formats, description=__doc__)
     parser.set_usage()
     parser.run()

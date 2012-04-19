@@ -193,17 +193,20 @@ class summarizer:
         self.complete_count = 0
 
         if (self.style == style_csv):
-            print "Filename, Translated Messages, Translated Source Words, Translated \
-Target Words, Fuzzy Messages, Fuzzy Source Words, Untranslated Messages, \
-Untranslated Source Words, Total Message, Total Source Words, \
-Review Messages, Review Source Words"
-        if (self.style == style_short_strings or self.style == style_short_words):
+            print "Filename,Translated Messages,Translated Source Words," \
+                  "Translated Target Words,Fuzzy Messages," \
+                  "Fuzzy Source Words,Untranslated Messages," \
+                  "Untranslated Source Words,Total Message," \
+                  "Total Source Words,Review Messages,Review Source Words"
+        if (self.style == style_short_strings or
+            self.style == style_short_words):
             for filename in filenames:  # find longest filename
                 if (len(filename) > self.longestfilename):
                     self.longestfilename = len(filename)
         for filename in filenames:
             if not os.path.exists(filename):
-                print >> sys.stderr, "cannot process %s: does not exist" % filename
+                print >> sys.stderr, "cannot process %s: does not exist" % \
+                                     filename
                 continue
             elif os.path.isdir(filename):
                 self.handledir(filename)
@@ -213,7 +216,8 @@ Review Messages, Review Source Words"
             if self.incomplete_only:
                 summarize("TOTAL (incomplete only):", self.totals,
                 incomplete_only=True)
-                print "File count (incomplete):   %5d" % (self.filecount - self.complete_count)
+                print "File count (incomplete):   %5d" % \
+                      (self.filecount - self.complete_count)
             else:
                 summarize("TOTAL:", self.totals, incomplete_only=False)
             print "File count:   %5d" % (self.filecount)
@@ -273,10 +277,12 @@ def main():
                       help="same as --short-strings")
     parser.add_option("--short-strings", action="store_const",
                       const=style_csv, dest="style_short_strings",
-                      help="statistics of strings in short format - one line per file")
+                      help="statistics of strings in short format - "
+                           "one line per file")
     parser.add_option("--short-words", action="store_const",
                       const=style_csv, dest="style_short_words",
-                      help="statistics of words in short format - one line per file")
+                      help="statistics of words in short format - "
+                           "one line per file")
 
     (options, args) = parser.parse_args()
 
@@ -289,7 +295,8 @@ def main():
        (options.style_csv and options.style_short_strings) or \
        (options.style_csv and options.style_short_words) or \
        (options.style_short_strings and options.style_short_words):
-        parser.error("options --full, --csv, --short-strings and --short-words are mutually exclusive")
+        parser.error("options --full, --csv, --short-strings and "
+                     "--short-words are mutually exclusive")
         sys.exit(2)
 
     style = default_style   # default output style

@@ -30,7 +30,8 @@ from translate.lang import factory as lang_factory
 
 class segment:
 
-    def __init__(self, sourcelang, targetlang, stripspaces=True, onlyaligned=False):
+    def __init__(self, sourcelang, targetlang, stripspaces=True,
+                 onlyaligned=False):
         self.sourcelang = sourcelang
         self.targetlang = targetlang
         self.stripspaces = stripspaces
@@ -39,16 +40,19 @@ class segment:
     def segmentunit(self, unit):
         if unit.isheader() or unit.hasplural():
             return [unit]
-        sourcesegments = self.sourcelang.sentences(unit.source, strip=self.stripspaces)
-        targetsegments = self.targetlang.sentences(unit.target, strip=self.stripspaces)
-        if unit.istranslated() and (len(sourcesegments) != len(targetsegments)):
+        sourcesegments = self.sourcelang \
+                             .sentences(unit.source, strip=self.stripspaces)
+        targetsegments = self.targetlang \
+                             .sentences(unit.target, strip=self.stripspaces)
+        if (unit.istranslated() and
+            (len(sourcesegments) != len(targetsegments))):
             if not self.onlyaligned:
                 return [unit]
             else:
                 return None
-        # We could do more here to check if the lengths correspond more or less,
-        # certain quality checks are passed, etc.  But for now this is a good
-        # start.
+        # We could do more here to check if the lengths correspond more or
+        # less, # certain quality checks are passed, etc.  But for now this
+        # is a good start.
         units = []
         for i in range(len(sourcesegments)):
             newunit = unit.copy()
@@ -70,15 +74,17 @@ class segment:
         return tostore
 
 
-def segmentfile(inputfile, outputfile, templatefile, sourcelanguage="en", targetlanguage=None, stripspaces=True, onlyaligned=False):
+def segmentfile(inputfile, outputfile, templatefile, sourcelanguage="en",
+                targetlanguage=None, stripspaces=True, onlyaligned=False):
     """reads in inputfile, segments it then, writes to outputfile"""
-    # note that templatefile is not used, but it is required by the converter...
+    # note that templatefile is not used, but it is required by the converter.
     inputstore = factory.getobject(inputfile)
     if inputstore.isempty():
         return 0
     sourcelang = lang_factory.getlanguage(sourcelanguage)
     targetlang = lang_factory.getlanguage(targetlanguage)
-    convertor = segment(sourcelang, targetlang, stripspaces=stripspaces, onlyaligned=onlyaligned)
+    convertor = segment(sourcelang, targetlang, stripspaces=stripspaces,
+                        onlyaligned=onlyaligned)
     outputstore = convertor.convertstore(inputstore)
     outputfile.write(str(outputstore))
     return 1
@@ -86,19 +92,28 @@ def segmentfile(inputfile, outputfile, templatefile, sourcelanguage="en", target
 
 def main():
     from translate.convert import convert
-    formats = {"po": ("po", segmentfile), "xlf": ("xlf", segmentfile), "tmx": ("tmx", segmentfile)}
-    parser = convert.ConvertOptionParser(formats, usepots=True, description=__doc__)
+    formats = {
+        "po": ("po", segmentfile),
+        "xlf": ("xlf", segmentfile),
+        "tmx": ("tmx", segmentfile),
+    }
+    parser = convert.ConvertOptionParser(formats, usepots=True,
+                                         description=__doc__)
     parser.add_option("-l", "--language", dest="targetlanguage", default=None,
-            help="the target language code", metavar="LANG")
-    parser.add_option("", "--source-language", dest="sourcelanguage", default=None,
-            help="the source language code (default 'en')", metavar="LANG")
+                      help="the target language code", metavar="LANG")
+    parser.add_option("", "--source-language", dest="sourcelanguage",
+                      default=None, metavar="LANG",
+                      help="the source language code (default 'en')")
     parser.passthrough.append("sourcelanguage")
     parser.passthrough.append("targetlanguage")
-    parser.add_option("", "--keepspaces", dest="stripspaces", action="store_false",
-            default=True, help="Disable automatic stripping of whitespace")
+    parser.add_option("", "--keepspaces", dest="stripspaces",
+                      action="store_false", default=True,
+                      help="Disable automatic stripping of whitespace")
     parser.passthrough.append("stripspaces")
-    parser.add_option("", "--only-aligned", dest="onlyaligned", action="store_true",
-            default=False, help="Removes units where sentence number does not correspond")
+    parser.add_option("", "--only-aligned", dest="onlyaligned",
+                      action="store_true", default=False,
+                      help="Removes units where sentence number does "
+                           "not correspond")
     parser.passthrough.append("onlyaligned")
     parser.run()
 

@@ -153,7 +153,8 @@ def pretranslate_store(input_store, template_store, tm=None,
     if template_store is not None:
         template_store.makeindex()
         #template preparation based on type
-        prepare_template = "prepare_template_%s" % template_store.__class__.__name__
+        prepare_template = "prepare_template_%s" % \
+                           template_store.__class__.__name__
         if prepare_template in globals():
             globals()[prepare_template](template_store)
 
@@ -176,7 +177,9 @@ def pretranslate_store(input_store, template_store, tm=None,
         matchers.append(matcher)
 
     #main loop
-    match_locations = isinstance(input_store, po.pofile) and input_store.parseheader().get('X-Accelerator-Marker') in ('&', '~')
+    match_locations = (isinstance(input_store, po.pofile) and
+                       input_store.parseheader() \
+                                  .get('X-Accelerator-Marker') in ('&', '~'))
     for input_unit in input_store.units:
         if  input_unit.istranslatable():
             input_unit = pretranslate_unit(input_unit, template_store,
@@ -200,12 +203,15 @@ def main(argv=None):
                                          allowmissingtemplate=True,
                                          description=__doc__)
     parser.add_option("", "--tm", dest="tm", default=None,
-                      help="The file to use as translation memory when fuzzy matching")
+                      help="The file to use as translation "
+                           "memory when fuzzy matching")
     parser.passthrough.append("tm")
     defaultsimilarity = 75
     parser.add_option("-s", "--similarity", dest="min_similarity",
                       default=defaultsimilarity, type="float",
-                      help="The minimum similarity for inclusion (default: %d%%)" % defaultsimilarity)
+                      help="The minimum similarity for "
+                           "inclusion (default: %d%%)" % \
+                           defaultsimilarity)
     parser.passthrough.append("min_similarity")
     parser.add_option("--nofuzzymatching", dest="fuzzymatching",
                       action="store_false", default=True,

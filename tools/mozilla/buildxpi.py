@@ -19,6 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 """Create a XPI language pack from Mozilla sources and translated l10n files.
+
 This script has only been tested with Firefox 3.1 beta sources.
 
 (Basically the process described at

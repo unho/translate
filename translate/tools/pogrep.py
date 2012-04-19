@@ -95,7 +95,8 @@ class GrepMatch(object):
         if end > len(self.get_getter()()) - 3:
             end = len(self.get_getter()()) - 3
         matchpart = self.get_getter()()[(start - 2):(end + 2)]
-        return '<GrepMatch "%s" part=%s[%d] start=%d end=%d>' % (matchpart, self.part, self.part_n, self.start, self.end)
+        return '<GrepMatch "%s" part=%s[%d] start=%d end=%d>' % \
+               (matchpart, self.part, self.part_n, self.start, self.end)
 
     def __repr__(self):
         return str(self)
@@ -123,15 +124,16 @@ def find_matches(unit, part, strings, re_search):
         for matchobj in re_search.finditer(normalized):
             start = real_index(string, matchobj.start())
             end = real_index(string, matchobj.end())
-            matches.append(GrepMatch(unit, part=part, part_n=n, start=start, end=end))
+            matches.append(GrepMatch(unit, part=part, part_n=n,
+                                     start=start, end=end))
     return matches
 
 
 class GrepFilter:
 
-    def __init__(self, searchstring, searchparts, ignorecase=False, useregexp=False,
-            invertmatch=False, keeptranslations=False, accelchar=None, encoding='utf-8',
-            max_matches=0):
+    def __init__(self, searchstring, searchparts, ignorecase=False,
+                 useregexp=False, invertmatch=False, keeptranslations=False,
+                 accelchar=None, encoding='utf-8', max_matches=0):
         """builds a checkfilter using the given checker"""
         if isinstance(searchstring, unicode):
             self.searchstring = searchstring
@@ -139,11 +141,14 @@ class GrepFilter:
             self.searchstring = searchstring.decode(encoding)
         self.searchstring = data.normalize(self.searchstring)
         if searchparts:
-            # For now we still support the old terminology, except for the old 'source'
-            # which has a new meaning now.
-            self.search_source = ('source' in searchparts) or ('msgid' in searchparts)
-            self.search_target = ('target' in searchparts) or ('msgstr' in searchparts)
-            self.search_notes = ('notes' in searchparts) or ('comment' in searchparts)
+            # For now we still support the old terminology, except for the old
+            # 'source' which has a new meaning now.
+            self.search_source = (('source' in searchparts) or
+                                  ('msgid' in searchparts))
+            self.search_target = (('target' in searchparts) or
+                                  ('msgstr' in searchparts))
+            self.search_notes = (('notes' in searchparts) or
+                                 ('comment' in searchparts))
             self.search_locations = 'locations' in searchparts
         else:
             self.search_source = True
@@ -249,7 +254,8 @@ class GrepFilter:
                     targets = unit.target.strings
                 else:
                     targets = [unit.target]
-                matches.extend(find_matches(unit, 'target', targets, self.re_search))
+                matches.extend(find_matches(unit, 'target', targets,
+                                            self.re_search))
             if self.search_source:
                 if unit.hasplural():
                     sources = unit.source.strings
@@ -257,10 +263,12 @@ class GrepFilter:
                     sources = [unit.source]
                 matches.extend(find_matches(unit, 'source', sources, self.re_search))
             if self.search_notes:
-                matches.extend(find_matches(unit, 'notes', unit.getnotes(), self.re_search))
+                matches.extend(find_matches(unit, 'notes', unit.getnotes(),
+                                            self.re_search))
 
             if self.search_locations:
-                matches.extend(find_matches(unit, 'locations', unit.getlocations(), self.re_search))
+                matches.extend(find_matches(unit, 'locations',
+                               unit.getlocations(), self.re_search))
 
             # A search for a single letter or an all-inclusive regular
             # expression could give enough results to cause performance
@@ -279,14 +287,18 @@ class GrepOptionParser(optrecurse.RecursiveOptionParser):
     """a specialized Option Parser for the grep tool..."""
 
     def parse_args(self, args=None, values=None):
-        """parses the command line options, handling implicit input/output args"""
-        (options, args) = optrecurse.optparse.OptionParser.parse_args(self, args, values)
-        # some intelligence as to what reasonable people might give on the command line
+        """parses the command line options, handling implicit input/output
+        args"""
+        (options, args) = optrecurse.optparse.OptionParser \
+                                             .parse_args(self, args, values)
+        # some intelligence as to what reasonable people might give on the
+        # command line
         if args:
             options.searchstring = args[0]
             args = args[1:]
         else:
-            self.error("At least one argument must be given for the search string")
+            self.error("At least one argument must be given for "
+                       "the search string")
         if args and not options.input:
             if not options.output:
                 options.input = args[:-1]
@@ -298,20 +310,24 @@ class GrepOptionParser(optrecurse.RecursiveOptionParser):
             options.output = args[-1]
             args = args[:-1]
         if args:
-            self.error("You have used an invalid combination of --input, --output and freestanding args")
+            self.error("You have used an invalid combination of --input, "
+                       "--output and freestanding args")
         if isinstance(options.input, list) and len(options.input) == 1:
             options.input = options.input[0]
         return (options, args)
 
     def set_usage(self, usage=None):
-        """sets the usage string - if usage not given, uses getusagestring for each option"""
+        """sets the usage string - if usage not given, uses getusagestring
+        for each option"""
         if usage is None:
-            self.usage = "%prog searchstring " + " ".join([self.getusagestring(option) for option in self.option_list])
+            self.usage = "%prog searchstring " \
+                         " ".join([self.getusagestring(option) for option in self.option_list])
         else:
             super(GrepOptionParser, self).set_usage(usage)
 
     def run(self):
-        """parses the arguments, and runs recursiveprocess with the resulting options"""
+        """parses the arguments, and runs recursiveprocess with the
+        resulting options"""
         (options, args) = self.parse_args()
         options.inputformats = self.inputformats
         options.outputoptions = self.outputoptions
@@ -338,14 +354,19 @@ def rungrep(inputfile, outputfile, templatefile, checkfilter):
 
 
 def cmdlineparser():
-    formats = {"po": ("po", rungrep), "pot": ("pot", rungrep),
-            "mo": ("mo", rungrep), "gmo": ("gmo", rungrep),
-            "tmx": ("tmx", rungrep),
-            "xliff": ("xliff", rungrep), "xlf": ("xlf", rungrep), "xlff": ("xlff", rungrep),
-            None: ("po", rungrep)}
+    formats = {
+        "po": ("po", rungrep),
+        "pot": ("pot", rungrep),
+        "mo": ("mo", rungrep),
+        "gmo": ("gmo", rungrep),
+        "tmx": ("tmx", rungrep),
+        "xliff": ("xliff", rungrep),
+        "xlf": ("xlf", rungrep),
+        "xlff": ("xlff", rungrep),
+        None: ("po", rungrep)}
     parser = GrepOptionParser(formats)
-    parser.add_option("", "--search", dest="searchparts",
-        action="append", type="choice", choices=["source", "target", "notes", "locations", "msgid", "msgstr", "comment"],
+    parser.add_option("", "--search", dest="searchparts", action="append",
+        type="choice", choices=["source", "target", "notes", "locations", "msgid", "msgstr", "comment"],
         metavar="SEARCHPARTS", help="searches the given parts (source, target, notes and locations)")
     parser.add_option("-I", "--ignore-case", dest="ignorecase",
         action="store_true", default=False, help="ignore case distinctions")

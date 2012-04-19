@@ -36,7 +36,8 @@ def main():
     usage = "usage: %prog [options] fromfile tofile"
     parser = optparse.OptionParser(usage)
     # GNU diff like options
-    parser.add_option("-i", "--ignore-case", default=False, action="store_true",
+    parser.add_option("-i", "--ignore-case", default=False,
+                      action="store_true",
                       help='Ignore case differences in file contents.')
     parser.add_option("-U", "--unified", type="int", metavar="NUM", default=3,
                       dest="unified_lines",
@@ -63,12 +64,16 @@ def main():
                       help='Only show changes where tofile contains TEXT')
     parser.add_option("", "--contains", type="string", default=None,
                       metavar="TEXT",
-                      help='Only show changes where fromfile or tofile contains TEXT')
-    parser.add_option("-I", "--ignore-case-contains", default=False, action="store_true",
-                      help='Ignore case differences when matching any of the changes')
+                      help='Only show changes where fromfile or tofile '
+                           'contains TEXT')
+    parser.add_option("-I", "--ignore-case-contains", default=False,
+                      action="store_true",
+                      help='Ignore case differences when matching any of '
+                           'the changes')
     parser.add_option("", "--accelerator", dest="accelchars", default="",
                       metavar="ACCELERATORS",
-                      help="ignores the given accelerator characters when matching")
+                      help="ignores the given accelerator characters when "
+                           "matching")
     (options, args) = parser.parse_args()
 
     if len(args) != 2:
@@ -81,12 +86,12 @@ def main():
         if os.path.isdir(tofile):
             differ = DirDiffer(fromfile, tofile, options)
         else:
-            parser.error("File %s is a directory while file %s is a regular file" %
-                         (fromfile, tofile))
+            parser.error("File %s is a directory while file %s is a "
+                         "regular file" % (fromfile, tofile))
     else:
         if os.path.isdir(tofile):
-            parser.error("File %s is a regular file while file %s is a directory" %
-                         (fromfile, tofile))
+            parser.error("File %s is a regular file while file %s is a "
+                         "directory" % (fromfile, tofile))
         else:
             differ = FileDiffer(fromfile, tofile, options)
     differ.writediff(sys.stdout)
@@ -130,14 +135,17 @@ class DirDiffer:
                             differ = DirDiffer(fromfile, tofile, self.options)
                             differ.writediff(outfile)
                         else:
-                            outfile.write("Common subdirectories: %s and %s\n" %
+                            outfile.write("Common subdirectories: "
+                                          "%s and %s\n" %
                                           (fromfile, tofile))
                     else:
-                        outfile.write("File %s is a directory while file %s is a regular file\n" %
+                        outfile.write("File %s is a directory while file %s "
+                                      "is a regular file\n" %
                                       (fromfile, tofile))
                 else:
                     if os.path.isdir(tofile):
-                        parser.error("File %s is a regular file while file %s is a directory\n" %
+                        parser.error("File %s is a regular file while file %s"
+                                     " is a directory\n" %
                                      (fromfile, tofile))
                     else:
                         filediffer = FileDiffer(fromfile, tofile, self.options)
@@ -194,7 +202,8 @@ class FileDiffer:
         if self.options.ignore_case:
             compare_from_lines = [line.lower() for line in compare_from_lines]
             compare_to_lines = [line.lower() for line in compare_to_lines]
-        matcher = difflib.SequenceMatcher(None, compare_from_lines, compare_to_lines)
+        matcher = difflib.SequenceMatcher(None, compare_from_lines,
+                                          compare_to_lines)
         groups = matcher.get_grouped_opcodes(self.options.unified_lines)
         started = False
         fromstring = '--- %s\t%s%s' % (self.fromfile, fromfiledate, lineterm)
@@ -224,7 +233,8 @@ class FileDiffer:
                 if self.options.ignore_case_contains:
                     hunk_lines = "".join([line.lower() for line in self.get_from_lines(group) + self.get_to_lines(group)])
                 else:
-                    hunk_lines = "".join(self.get_from_lines(group) + self.get_to_lines(group))
+                    hunk_lines = "".join(self.get_from_lines(group) +
+                                         self.get_to_lines(group))
                 for accelerator in self.options.accelchars:
                     hunk_lines = hunk_lines.replace(accelerator, "")
                 if self.options.contains not in hunk_lines:
@@ -256,7 +266,8 @@ class FileDiffer:
         """takes the group of opcodes and generates a unified diff line
         by line"""
         i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
-        yield "@@ -%d,%d +%d,%d @@%s" % (i1 + 1, i2 - i1, j1 + 1, j2 - j1, lineterm)
+        yield "@@ -%d,%d +%d,%d @@%s" % \
+              (i1 + 1, i2 - i1, j1 + 1, j2 - j1, lineterm)
         for tag, i1, i2, j1, j2 in group:
             if tag == 'equal':
                 for line in self.from_lines[i1:i2]:

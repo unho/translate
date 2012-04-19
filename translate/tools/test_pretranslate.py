@@ -67,23 +67,34 @@ class TestPretranslate:
     def test_pretranslatepo_blank(self):
         """checks that the pretranslatepo function is working for a simple file
         initialisation"""
-        input_source = '''#: simple.label%ssimple.accesskey\nmsgid "A &hard coded newline.\\n"\nmsgstr ""\n''' % po.lsep
+        input_source = '#: simple.label%ssimple.accesskey\n' \
+                       'msgid "A &hard coded newline.\\n"\n' \
+                       'msgstr ""\n' % po.lsep
         newpo = self.pretranslatepo(input_source)
         assert str(self.singleunit(newpo)) == input_source
 
     def test_merging_simple(self):
         """checks that the pretranslatepo function is working for a simple
         merge"""
-        input_source = '''#: simple.label%ssimple.accesskey\nmsgid "A &hard coded newline.\\n"\nmsgstr ""\n''' % po.lsep
-        template_source = '''#: simple.label%ssimple.accesskey\nmsgid "A &hard coded newline.\\n"\nmsgstr "&Hart gekoeerde nuwe lyne\\n"\n''' % po.lsep
+        input_source = '#: simple.label%ssimple.accesskey\n' \
+                       'msgid "A &hard coded newline.\\n"\n' \
+                       'msgstr ""\n' % po.lsep
+        template_source = '#: simple.label%ssimple.accesskey\n' \
+                          'msgid "A &hard coded newline.\\n"\n' \
+                          'msgstr "&Hart gekoeerde nuwe lyne\\n"\n' % po.lsep
         newpo = self.pretranslatepo(input_source, template_source)
         assert str(self.singleunit(newpo)) == template_source
 
     def test_merging_messages_marked_fuzzy(self):
         """test that when we merge PO files with a fuzzy message that it
         remains fuzzy"""
-        input_source = '''#: simple.label%ssimple.accesskey\nmsgid "A &hard coded newline.\\n"\nmsgstr ""\n''' % po.lsep
-        template_source = '''#: simple.label%ssimple.accesskey\n#, fuzzy\nmsgid "A &hard coded newline.\\n"\nmsgstr "&Hart gekoeerde nuwe lyne\\n"\n''' % po.lsep
+        input_source = '#: simple.label%ssimple.accesskey\n' \
+                       'msgid "A &hard coded newline.\\n"\n' \
+                       'msgstr ""\n' % po.lsep
+        template_source = '#: simple.label%ssimple.accesskey\n' \
+                          '#, fuzzy\n' \
+                          'msgid "A &hard coded newline.\\n"\n' \
+                          'msgstr "&Hart gekoeerde nuwe lyne\\n"\n' % po.lsep
         newpo = self.pretranslatepo(input_source, template_source)
         assert str(self.singleunit(newpo)) == template_source
 
@@ -118,9 +129,19 @@ msgstr[1] "%d handleidings."
     def test_merging_msgid_change(self):
         """tests that if the msgid changes but the location stays the same that
         we merge"""
-        input_source = '''#: simple.label\n#: simple.accesskey\nmsgid "Its &hard coding a newline.\\n"\nmsgstr ""\n'''
-        template_source = '''#: simple.label\n#: simple.accesskey\nmsgid "A &hard coded newline.\\n"\nmsgstr "&Hart gekoeerde nuwe lyne\\n"\n'''
-        poexpected = '''#: simple.label\n#: simple.accesskey\n#, fuzzy\nmsgid "Its &hard coding a newline.\\n"\nmsgstr "&Hart gekoeerde nuwe lyne\\n"\n'''
+        input_source = '#: simple.label\n' \
+                       '#: simple.accesskey\n' \
+                       'msgid "Its &hard coding a newline.\\n"\n' \
+                       'msgstr ""\n'
+        template_source = '#: simple.label\n' \
+                          '#: simple.accesskey\n' \
+                          'msgid "A &hard coded newline.\\n"\n' \
+                          'msgstr "&Hart gekoeerde nuwe lyne\\n"\n'
+        poexpected = '#: simple.label\n' \
+                     '#: simple.accesskey\n' \
+                     '#, fuzzy\n' \
+                     'msgid "Its &hard coding a newline.\\n"\n' \
+                     'msgstr "&Hart gekoeerde nuwe lyne\\n"\n'
         newpo = self.pretranslatepo(input_source, template_source)
         print newpo
         assert str(newpo) == poexpected
@@ -176,9 +197,18 @@ msgstr[1] "%d handleidings."
 
     def test_merging_automatic_comments_new_overides_old(self):
         """ensure that new #. comments override the old comments"""
-        input_source = '''#. new comment\n#: someline.c\nmsgid "&About"\nmsgstr ""\n'''
-        template_source = '''#. old comment\n#: someline.c\nmsgid "&About"\nmsgstr "&Info"\n'''
-        poexpected = '''#. new comment\n#: someline.c\nmsgid "&About"\nmsgstr "&Info"\n'''
+        input_source = '#. new comment\n' \
+                       '#: someline.c\n' \
+                       'msgid "&About"\n' \
+                       'msgstr ""\n'
+        template_source = '#. old comment\n' \
+                          '#: someline.c\n' \
+                          'msgid "&About"\n' \
+                          'msgstr "&Info"\n'
+        poexpected = '#. new comment\n' \
+                     '#: someline.c\n' \
+                     'msgid "&About"\n' \
+                     'msgstr "&Info"\n'
         newpo = self.pretranslatepo(input_source, template_source)
         newpounit = self.singleunit(newpo)
         assert str(newpounit) == poexpected

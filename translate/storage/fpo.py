@@ -51,7 +51,8 @@ class pounit(pocommon.pounit):
     # othercomments = []      #   # this is another comment
     # automaticcomments = []  #   #. comment extracted from the source code
     # sourcecomments = []     #   #: sourcefile.xxx:35
-    # prev_msgctxt = []       #   #| The previous values that msgctxt and msgid held
+    # prev_msgctxt = []       #   #| The previous values that msgctxt and
+    #                                msgid held
     # prev_msgid = []         #
     # prev_msgid_plural = []  #
     # typecomments = []       #   #, fuzzy
@@ -117,13 +118,16 @@ class pounit(pocommon.pounit):
             if len(target) == 1:
                 self._target = target[0]
             else:
-                raise ValueError("po msgid element has no plural but msgstr has %d elements (%s)" % (len(target), target))
+                raise ValueError("po msgid element has no plural but msgstr "
+                                 "has %d elements (%s)" %
+                                 (len(target), target))
         else:
             self._target = target
     target = property(gettarget, settarget)
 
     def getnotes(self, origin=None):
-        """Return comments based on origin value (programmer, developer, source code and translator)"""
+        """Return comments based on origin value (programmer, developer,
+        source code and translator)"""
         if origin == None:
             comments = u"\n".join(self.othercomments)
             comments += u"\n".join(self.automaticcomments)
@@ -136,7 +140,8 @@ class pounit(pocommon.pounit):
         return comments
 
     def addnote(self, text, origin=None, position="append"):
-        """This is modeled on the XLIFF method. See xliff.py::xliffunit.addnote"""
+        """This is modeled on the XLIFF method.
+        See xliff.py::xliffunit.addnote"""
         # ignore empty strings and strings without non-space characters
         if not (text and text.strip()):
             return
@@ -197,7 +202,8 @@ class pounit(pocommon.pounit):
         else:
             return len(self.target)
 
-    def merge(self, otherpo, overwrite=False, comments=True, authoritative=False):
+    def merge(self, otherpo, overwrite=False, comments=True,
+              authoritative=False):
         """Merges the otherpo (with the same msgid) into this one.
 
         Overwrite non-blank self.msgstr only if overwrite is True
@@ -205,8 +211,9 @@ class pounit(pocommon.pounit):
         """
 
         def mergelists(list1, list2, split=False):
-            #decode where necessary
-            if unicode in [type(item) for item in list2] + [type(item) for item in list1]:
+            # Decode where necessary
+            if unicode in [type(item) for item in list2] + \
+                          [type(item) for item in list1]:
                 for position, item in enumerate(list1):
                     if isinstance(item, str):
                         list1[position] = item.decode("utf-8")
@@ -214,7 +221,7 @@ class pounit(pocommon.pounit):
                     if isinstance(item, str):
                         list2[position] = item.decode("utf-8")
 
-            #Determine the newline style of list2
+            # Determine the newline style of list2
             lineend = ""
             if list2 and list2[0]:
                 for candidate in ["\n", "\r", "\n\r"]:
@@ -223,7 +230,7 @@ class pounit(pocommon.pounit):
                 if not lineend:
                     lineend = ""
 
-            #Split if directed to do so:
+            # Split if directed to do so:
             if split:
                 splitlist1 = []
                 splitlist2 = []
@@ -233,11 +240,12 @@ class pounit(pocommon.pounit):
                     splitlist2.extend(item.split())
                 list1.extend([item for item in splitlist2 if not item in splitlist1])
             else:
-                #Normal merge, but conform to list1 newline style
+                # Normal merge, but conform to list1 newline style
                 if list1 != list2:
                     for item in list2:
                         item = item.rstrip(lineend)
-                        # avoid duplicate comment lines (this might cause some problems)
+                        # Avoid duplicate comment lines (this might cause
+                        # some problems)
                         if item not in list1 or len(item) < 5:
                             list1.append(item)
 
@@ -248,13 +256,16 @@ class pounit(pocommon.pounit):
             mergelists(self.othercomments, otherpo.othercomments)
             mergelists(self.typecomments, otherpo.typecomments)
             if not authoritative:
-                # We don't bring across otherpo.automaticcomments as we consider ourself
-                # to be the the authority.  Same applies to otherpo.msgidcomments
+                # We don't bring across otherpo.automaticcomments as we
+                # consider ourself to be the the authority.  Same applies
+                # to otherpo.msgidcomments
                 mergelists(self.automaticcomments, otherpo.automaticcomments)
-#                mergelists(self.msgidcomments, otherpo.msgidcomments) #XXX?
-                mergelists(self.sourcecomments, otherpo.sourcecomments, split=True)
+                #mergelists(self.msgidcomments, otherpo.msgidcomments) #XXX?
+                mergelists(self.sourcecomments, otherpo.sourcecomments,
+                           split=True)
         if not self.istranslated() or overwrite:
-            # Remove kde-style comments from the translation (if any). XXX - remove
+            # Remove kde-style comments from the translation (if any).
+            # XXX - remove
             if pocommon.extract_msgid_comment(otherpo.target):
                 otherpo.target = otherpo.target.replace('_: ' + otherpo._extract_msgidcomments() + '\n', '')
             self.target = otherpo.target
@@ -276,18 +287,20 @@ class pounit(pocommon.pounit):
     def isblank(self):
         if self.isheader() or self.msgidcomment:
             return False
-        if (self._msgidlen() == 0) and (self._msgstrlen() == 0) and len(self._msgctxt) == 0:
+        if ((self._msgidlen() == 0) and (self._msgstrlen() == 0) and
+            len(self._msgctxt) == 0):
             return True
         return False
 
     def hastypecomment(self, typecomment):
         """Check whether the given type comment is present"""
-        # check for word boundaries properly by using a regular expression...
+        # check for word boundaries properly by using a regular expression.
         return sum(map(lambda tcline: len(re.findall("\\b%s\\b" % typecomment, tcline)), self.typecomments)) != 0
 
     def hasmarkedcomment(self, commentmarker):
-        """Check whether the given comment marker is present as # (commentmarker) ..."""
-#        raise DeprecationWarning
+        """Check whether the given comment marker is present as
+         # (commentmarker)"""
+        #raise DeprecationWarning
         commentmarker = "(%s)" % commentmarker
         for comment in self.othercomments:
             if comment.startswith(commentmarker):
@@ -332,7 +345,8 @@ class pounit(pocommon.pounit):
         return poparser.parse_unit(poparser.ParseState(cStringIO.StringIO(src), pounit), self)
 
     def __str__(self):
-        """convert to a string. double check that unicode is handled somehow here"""
+        """convert to a string. double check that unicode is handled
+        somehow here"""
         _cpo_unit = cpo.pounit.buildfromunit(self)
         return str(_cpo_unit)
 
@@ -358,7 +372,8 @@ class pounit(pocommon.pounit):
         """Extract KDE style msgid comments from the unit.
 
         :rtype: String
-        :return: Returns the extracted msgidcomments found in this unit's msgid.
+        :return: Returns the extracted msgidcomments found in this
+                 unit's msgid.
         """
         if text:
             return pocommon.extract_msgid_comment(text)
@@ -450,7 +465,8 @@ class pofile(pocommon.pofile):
                 continue
             charsetline = line
         if charsetline is None:
-            headerstr += "Content-Type: text/plain; charset=%s" % self._encoding
+            headerstr += "Content-Type: text/plain; charset=%s" % \
+                         self._encoding
         else:
             charset = re.search("charset=([^ ]*)", charsetline)
             if charset is None:
@@ -460,7 +476,8 @@ class pofile(pocommon.pofile):
                 newcharsetline += " charset=%s" % self._encoding
             else:
                 charset = charset.group(1)
-                newcharsetline = charsetline.replace("charset=%s" % charset, "charset=%s" % self._encoding, 1)
+                newcharsetline = charsetline.replace("charset=%s" % charset,
+                                                     "charset=%s" % self._encoding, 1)
             headerstr = headerstr.replace(charsetline, newcharsetline, 1)
         header.target = headerstr
 
@@ -507,7 +524,8 @@ class pofile(pocommon.pofile):
             raise base.ParseError(e)
 
     def removeduplicates(self, duplicatestyle="merge"):
-        """Make sure each msgid is unique ; merge comments etc from duplicates into original"""
+        """Make sure each msgid is unique ; merge comments etc from
+        duplicates into original"""
         # TODO: can we handle consecutive calls to removeduplicates()? What
         # about files already containing msgctxt? - test
         id_dict = {}
@@ -549,13 +567,15 @@ class pofile(pocommon.pofile):
         self.units = uniqueunits
 
     def __str__(self):
-        """Convert to a string. double check that unicode is handled somehow here"""
+        """Convert to a string. double check that unicode is handled
+        somehow here"""
         self._cpo_store = cpo.pofile(encoding=self._encoding, noheader=True)
         try:
             self._build_cpo_from_self()
         except UnicodeEncodeError, e:
             self._encoding = "utf-8"
-            self.updateheader(add=True, Content_Type="text/plain; charset=UTF-8")
+            self.updateheader(add=True,
+                              Content_Type="text/plain; charset=UTF-8")
             self._build_cpo_from_self()
         output = str(self._cpo_store)
         del self._cpo_store
