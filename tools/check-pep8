@@ -6,7 +6,7 @@
 # Tests: leave out for now as they are noisy
 exclude_toolkit=diff_match_patch.py,typecheck,ini.py,selector.py,textwrap.py,test_\*.py
 exclude_pootle=legacy,external_apps
-exclude_virtaal=
+exclude_virtaal=optparse.py,_ipython_console,_python_console.py
 exclude=$exclude_toolkit,$exclude_pootle,$exclude_virtaal
 
 #: Other pep8 command line options.
