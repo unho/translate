@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#: Things we don't want to check for PEP8 compliance.
+# If you want to exclude anything please tell us why
+# Not our code: typecheck, selector, textwrap, diff_match_patch, ini
+# Tests: leave out for now as they are noisy
+exclude_toolkit=diff_match_patch.py,typecheck,ini.py,selector.py,textwrap.py,test_\*.py
+exclude_pootle=legacy,external_apps
+exclude_virtaal=
+exclude=$exclude_toolkit,$exclude_pootle,$exclude_virtaal
+
+#: Other pep8 command line options.
+extra_options="--count --statistics"
+
+#: Default tests to run if nothing is supplied
+# Use --select=E501 to add and --ignore=E501 to remove
+# These are mutually exclusive.
+default_tests=""
+
+#: Default directories to check
+default_dirs="."
+
+if [ $# -ne 0 ]; then
+	tests_and_dirs=$*
+else
+	tests_and_dirs="$default_tests $default_dirs"
+fi
+
+pep8 --exclude=$exclude $extra_options $tests_and_dirs
