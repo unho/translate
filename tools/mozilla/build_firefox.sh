@@ -34,6 +34,7 @@ export USECPO=0
 hgverbosity="--quiet" # --verbose to make it noisy
 gitverbosity="--quiet" # --verbose to make it noisy
 svnverbosity="--quiet"
+pomigrate2verbosity="--quiet"
 
 for option in $*
 do
@@ -51,6 +52,13 @@ do
 			--no-copyfiles)
 				opt_copyfiles=""
 			;;
+			--verbose)
+				hgverbosity="--verbose"
+				gitverbosity=""
+				svnverbosity=""
+				progress=bar
+				pomigrate2verbosity=""
+			;;
 			*) 
 			echo "Unkown option: $option"
 			exit
@@ -63,7 +71,7 @@ do
 done
 
 if [ $# -eq 0 ]; then
-	HG_LANGS="ach af ak am cy en-ZA ff gd hz ki lg ng nso ny sah son st-LS su sw tn ur ve wo xog zu"
+	HG_LANGS="ach af ak am cy en-ZA ff gd hi-IN hz ki lg ng nso ny sah son st-LS su sw tn ur ve wo xog zu"
 	COUNT_LANGS=25
 else
 	HG_LANGS=$*
@@ -106,7 +114,7 @@ POUPDATED_DIR_REL=`echo ${POUPDATED_DIR} | sed "s#${BUILD_DIR}/##"`
 	git checkout $gitverbosity
 	git stash pop $gitverbosity || true)
 else
-	git clone $gitverbosity git@github.com:translate/translate.git ${TOOLS_DIR}/translate
+	git clone $gitverbosity git@github.com:translate/translate.git ${TOOLS_DIR}/translate || git clone git://github.com/translate/translate.git ${TOOLS_DIR}/translate 
 fi
 
 export PYTHONPATH="${TOOLS_DIR}/translate":"$PYTHONPATH"
@@ -228,7 +236,7 @@ do
 	# Comment out the following "pomigrate2"-line if migration should not be done.
 	tempdir=`mktemp -d tmp.XXXXXXXXXX`
 	[ -d ${PO_DIR}/${polang} ] && cp -R ${PO_DIR}/${polang} ${tempdir}/${polang}
-	pomigrate2 --use-compendium --pot2po --quiet ${tempdir}/${polang} ${POUPDATED_DIR}/${polang} ${L10N_DIR}/pot
+	pomigrate2 --use-compendium --pot2po $pomigrate2verbosity ${tempdir}/${polang} ${POUPDATED_DIR}/${polang} ${L10N_DIR}/pot
 	rm -rf ${tempdir}
 
 	## Cleanup migrated PO files
@@ -320,6 +328,7 @@ do
 	# COMPARE LOCALES
 	if [ $opt_compare_locales ]; then
 		compare-locales ${MOZCENTRAL_DIR}/browser/locales/l10n.ini ${L10N_DIR} $lang
+		compare-locales ${MOZCENTRAL_DIR}/mobile/locales/l10n.ini ${L10N_DIR} $lang
 	fi
 
 done

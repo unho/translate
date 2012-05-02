@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2004-2007 Zuza Software Foundation
+# Copyright 2004-2008,2012 Zuza Software Foundation
 #
 # This file is part of translate.
 #
@@ -19,8 +19,10 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+
 from translate.storage.versioncontrol import GenericRevisionControlSystem
-from translate.storage.versioncontrol import run_command
+from translate.storage.versioncontrol import run_command, prepare_filelist, youngest_ancestor
 
 
 def is_available():
@@ -52,6 +54,20 @@ class darcs(GenericRevisionControlSystem):
         if exitcode != 0:
             raise IOError("[Darcs] error running '%s': %s" % (command, error))
         return output_revert + output_pull
+
+    def add(self, files, message=None, author=None):
+        """Add and commit files."""
+        files = prepare_filelist(files)
+        command = ["darcs", "add", "--repodir", self.root_dir] + files
+        exitcode, output, error = run_command(command)
+        if exitcode != 0:
+            raise IOError("[Darcs] Error running darcs command '%s': %s" \
+                    % (command, error))
+
+        # go down as deep as possible in the tree to avoid accidental commits
+        # TODO: explicitly commit files by name
+        ancestor = youngest_ancestor(files)
+        return output + type(self)(ancestor).commit(message, author)
 
     def commit(self, message=None, author=None):
         """Commits the file and supplies the given commit message if present"""
