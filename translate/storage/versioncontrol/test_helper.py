@@ -13,10 +13,12 @@ class HelperTest(object):
             shutil.rmtree(path)
 
     def get_test_path(self, method):
-        return os.path.realpath("%s_%s" % (self.__class__.__name__, method.__name__))
+        return os.path.realpath("%s_%s" %
+                                (self.__class__.__name__, method.__name__))
 
     def setup_method(self, method):
-        """Allocates a unique self.filename for the method, making sure it doesn't exist"""
+        """Allocates a unique self.filename for the method, making sure it
+        doesn't exist"""
         self.path = self.get_test_path(method)
         self.co_path = os.path.join(self.path, "checkout")
         self.remove_dirs(self.path)
@@ -33,7 +35,8 @@ class HelperTest(object):
         pass
 
     def teardown_method(self, method):
-        """Makes sure that if self.filename was created by the method, it is cleaned up"""
+        """Makes sure that if self.filename was created by the method, it is
+        cleaned up"""
         self.remove_dirs(self.path)
 
     def create_files(self, files_dict):
