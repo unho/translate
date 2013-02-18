@@ -537,6 +537,46 @@ $month_mar = 'Mar';"""
         assert phpunit.name == "$lang->'item2'"
         assert phpunit.source == "value2"
 
+    @mark.xfail(reason="Bug #    ")#TODO
+    def test_parsing_nested_arrays_with_entries_in_array_declaration_line(self):
+        """parse the nested array syntax with entries in the nested array
+        declaration line. Bug # """#TODO
+        phpsource = '''$lang = array(
+            'item1' => 'value1',
+            'dom_int_bool' => array(1 => 'Yes',
+                0 => 'No',
+	        ),
+            'item2' => 'value2',
+        );'''
+        phpfile = self.phpparse(phpsource)
+        assert len(phpfile.units) == 4
+        phpunit = phpfile.units[0]
+        assert phpunit.name == "$lang->'item1'"
+        assert phpunit.source == "value1"
+        phpunit = phpfile.units[1]
+        assert phpunit.name == "$lang->'dom_int_bool'->1"
+        assert phpunit.source == "Yes"
+        phpunit = phpfile.units[2]
+        assert phpunit.name == "$lang->'dom_int_bool'->0"
+        assert phpunit.source == "No"
+        phpunit = phpfile.units[3]
+        assert phpunit.name == "$lang->'item2'"
+        assert phpunit.source == "value2"
+
+#TODO en sugarCRM   'reminder_time_options' => array( 60=> '1 minute prior',
+#TODO en sugarCRM   'dom_cal_month_long'=>array(#TODO todo pegado
+#TODO en sugarCRM   'dom_int_bool'			=> array(1 => 'Yes',#TODO claves son números (quizais xa existe algún test para isto)
+#								 	                 0 => 'No',
+#TODO en sugarCRM   'dom_switch_bool'		=> array ('on' => 'Yes',
+#										'off' => 'No',
+#										'' => 'No', ),#TODO clave baleira (parece que funciona sen problemas)
+#TODO en sugarCRM   'dom_email_link_type'	=> array(	''			=> 'System Default Mail Client',
+#										'sugar'		=> 'SugarCRM Mail Client',
+#										'mailto'	=> 'External Mail Client'),#TODO fin de array pegado a fin de entrada (esquecer que falta a coma final)
+#TODO en sugarCRM(install) se o array está declarado despois dun comentario (na mesma liña na que remata o comentario) non se extrae ben, se no ficheiro de outro idioma non está así (é dicir, o prename inclúe a última liña do comentario):#TODO isto é grave!!!!!
+# ********************************************************************************/$mod_strings=array(
+#TODO e se os whitespaces son tabs??
+
     @mark.xfail(reason="Bug #2648")
     def test_parsing_nested_arrays_with_blank_entries(self):
         """parse the nested array syntax with blank entries. Bug #2648"""
