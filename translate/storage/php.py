@@ -271,6 +271,18 @@ class phpfile(base.TranslationStore):
                 prename = prename[:prename.find("->")+2]
                 continue
 
+
+            #TODO buscar nos ficheiros con defines todos eses casos
+            # particulares para os que hai que estender. Con sorte terán tests
+            # creados, e senón crear tests!!
+
+            #TODO// O seguinte saqueino da tradución de Xoops:
+            #  /xoops-2.3.x-galician/htdocs/language/galician/locale.php
+            #
+            #define("_TIMEFORMAT_DESC", "Formatos válidos: ".SHORTDATESTRING.' "m" - ' );
+            #define("_TIMEFORMAT_DESC", "Formatos válidos: " . SHORTDATESTRING . ' "m" - ' );
+
+
             # If the current line hosts a define syntax translation.
             if line.lstrip().startswith("define("):
                 equaldel = ","

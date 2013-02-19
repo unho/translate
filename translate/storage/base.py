@@ -659,6 +659,7 @@ class TranslationStore(object):
             if location in self.locationindex:
                 # if sources aren't unique, don't use them
                 #FIXME: maybe better store a list of units like sourceindex
+                #TODO isto está provocando problemas con entradas con clave duplicada
                 self.locationindex[location] = None
             else:
                 self.locationindex[location] = unit

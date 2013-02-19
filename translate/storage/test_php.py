@@ -561,9 +561,44 @@ $month_mar = 'Mar';"""
         assert phpunit.name == "$lang->'item2'"
         assert phpunit.source == "value2"
 
+#    @mark.xfail(reason="Bug #    ")#TODO poñer número de bug
+#    def test_nested_arrays_keys_with_spaces(self):
+#        """Ensure that nested array identifiers can have spaces. Bug #      """
+#        phpsource = '''$lang = array(
+#            'item1' => 'value1',
+#            'newsletter' => array(
+#                'Assigned' => 'Asignada',
+#                'In Process' => 'En proceso',
+#                'Converted' => 'Convertida',
+#            ),
+#            'item2' => 'value2',
+#        );'''
+#        # Isto é debido a que ao xerar un PO a partir dun PHP cunha clave con espazos en branco pon o seguinte:
+#        ##: %24app_list_strings-%3E%27newsletter%27-%3E%27In+Process%27
+#        phpfile = self.phpparse(phpsource)
+#        assert len(phpfile.units) == 5
+#        phpunit = phpfile.units[0]
+#        assert phpunit.name == "$lang->'item1'"
+#        assert phpunit.source == "value1"
+#        phpunit = phpfile.units[1]
+#        assert phpunit.name == "$lang->'newsletter'->'Assigned'"
+#        assert phpunit.source == "Asignada"
+#        phpunit = phpfile.units[2]
+#        assert phpunit.name == "$lang->'newsletter'->'In Process'"
+#        assert phpunit.source == "En proceso"
+#        phpunit = phpfile.units[3]
+#        assert phpunit.name == "$lang->'newsletter'->'Converted'"
+#        assert phpunit.source == "Convertida"
+#        phpunit = phpfile.units[4]
+#        assert phpunit.name == "$lang->'item2'"
+#        assert phpunit.source == "value2"
+
     @mark.xfail(reason="Bug #2611")
     def test_parsing_simple_heredoc_syntax(self):
         """parse the heredoc syntax. Bug #2611"""
+        #<<<. After this operator, an identifier is provided, then a newline. The string itself follows, and then the same identifier again to close the quotation.
+        #TODO pode haber espazos en branco ou tabulacións antes do delimitador final
+        #TODO o delimitador pode ser calquera texto
         phpsource = '''$month_jan = 'Jan';
 $lang_register_approve_email = <<<EOT
 A new user with the username "{USER_NAME}" has registered in your gallery.
@@ -593,3 +628,18 @@ $month_mar = 'Mar';
         phpunit = phpfile.units[3]
         assert phpunit.name == '$month_mar'
         assert phpunit.source == "Mar"
+
+
+#TODO test why when having defines after a commented array makes the locations in PO appear weird:
+##$app_list_strings = array(
+##    'Mailbox' => 'Mailbox',
+##    'moduleList' => array(
+##        'Home' => 'Home',
+##        'Contacts' => 'Contacts',
+##        'Accounts' => 'Accounts',
+##	),
+##	'FAQ' => 'FAQ',
+##);
+#
+#define("_POSTEDON", "Enviado o");
+
