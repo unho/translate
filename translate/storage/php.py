@@ -367,6 +367,12 @@ class phpfile(base.TranslationStore):
                 # Update end delimiter position (colonpos) to the previous last
                 # appearance of end delimiter.
                 colonpos = value.rfind(enddel, 0, colonpos)
+            else:
+                # After processing current line, if we are non in an array,
+                # fall back to default dialect (PHP simple variable syntax).
+                if not inarray:
+                    equaldel = "="
+                    enddel = ";"
 
             # If this is part of a multiline translation, just append it to the
             # previous translation lines.
