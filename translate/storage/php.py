@@ -201,6 +201,20 @@ class phpfile(base.TranslationStore):
             inputfile.close()
             self.parse(phpsrc)
 
+    def get_clean_key(self, line, equalpos, startkeydel="", endkeydel=""):
+        """Get the key without blank spaces from the line."""
+        # If this is an array (array keys are easier to get).
+        if not startkeydel and not endkeydel:
+            return line[:equalpos].strip()
+
+        # If this is not an array.
+        startkeydelpos = line.find(startkeydel)
+        endkeydelpos = line.find(endkeydel)
+        key = line[:startkeydelpos+1]
+        key += line[startkeydelpos+1:endkeydelpos].strip()
+        key += endkeydel
+        return key
+
     def parse(self, phpsrc):
         """Read the source of a PHP file in and include them as units."""
         newunit = phpunit()
@@ -212,6 +226,8 @@ class phpfile(base.TranslationStore):
         valuequote = ""  # Either ' or ".
         equaldel = "="
         enddel = ";"
+        startkeydel = "["
+        endkeydel = "]"
         prename = ""
         keys_dict = {}
         line_number = 0
@@ -252,6 +268,8 @@ class phpfile(base.TranslationStore):
                 else:
                     equaldel = "=>"
                     enddel = ","
+                    startkeydel = ""
+                    endkeydel = ""
                     inarray = True
                     prename = line[:line.find('=')].strip() + "->"
                 continue
@@ -261,6 +279,8 @@ class phpfile(base.TranslationStore):
             if inarray and line.find(');') != -1:
                 equaldel = "="
                 enddel = ";"
+                startkeydel = "["
+                endkeydel = "]"
                 inarray = False
                 prename = ""
                 continue
@@ -287,6 +307,8 @@ class phpfile(base.TranslationStore):
             if line.lstrip().startswith("define("):
                 equaldel = ","
                 enddel = ");"
+                startkeydel = "("
+                endkeydel = equaldel
 
             equalpos = line.find(equaldel)
             hashpos = line.find("#")
@@ -312,16 +334,23 @@ class phpfile(base.TranslationStore):
                     # (until the equal delimiter) is appended to the location.
                     location = prename + line[:equalpos].strip()
 
-                    # Check for duplicate entries.
-                    if location in keys_dict.keys():
+                    # Get a clean location (without blank spaces on the key)
+                    # to check for duplicates.
+                    clean_key = self.get_clean_key(line, equalpos, startkeydel,
+                                                   endkeydel)
+                    clean_location = prename + clean_key
+
+                    # Check for duplicate entries using the clean key (without
+                    # blank spaces).
+                    if clean_location in keys_dict.keys():
                         # TODO Get the logger from the code that is calling
                         # this class.
                         logging.error("Duplicate key %s in %s:%d, first "
                                       "occurrence in line %d", location,
                                       self.filename, line_number,
-                                      keys_dict[location])
+                                      keys_dict[clean_location])
                     else:
-                        keys_dict[location] = line_number
+                        keys_dict[clean_location] = line_number
 
                     # Add the location to the translation unit.
                     newunit.addlocation(location)
@@ -373,6 +402,8 @@ class phpfile(base.TranslationStore):
                 if not inarray:
                     equaldel = "="
                     enddel = ";"
+                    startkeydel = "["
+                    endkeydel = "]"
 
             # If this is part of a multiline translation, just append it to the
             # previous translation lines.
