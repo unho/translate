@@ -368,12 +368,13 @@ class phpfile(base.TranslationStore):
             # Get the end delimiter position.
             enddelpos = value.rfind(enddel)
 
+            # Process the current line until all entries on it are parsed.
             while enddelpos != -1:
                 # Check if the latest non-whitespace character before the end
-                # delimiter is the valuequote
+                # delimiter is the valuequote.
                 if value[:enddelpos].rstrip()[-1] == valuequote:
                     # Save the value string without trailing whitespaces and
-                    # without the ending quotes
+                    # without the ending quotes.
                     newunit.value = lastvalue + value[:enddelpos].rstrip()[:-1]
                     newunit.escape_type = valuequote
                     lastvalue = ""
@@ -394,7 +395,8 @@ class phpfile(base.TranslationStore):
                     newunit = phpunit()
 
                 # Update end delimiter position to the previous last appearance
-                # of the end delimiter.
+                # of the end delimiter, because it might be several entries in
+                # the same line.
                 enddelpos = value.rfind(enddel, 0, enddelpos)
             else:
                 # After processing current line, if we are non in an array,
