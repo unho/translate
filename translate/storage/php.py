@@ -397,6 +397,7 @@ class phpfile(base.TranslationStore):
                 # Update end delimiter position to the previous last appearance
                 # of the end delimiter, because it might be several entries in
                 # the same line.
+                #TODO Digo eu que haberá que comprobar se son do mesmo tipo.
                 enddelpos = value.rfind(enddel, 0, enddelpos)
             else:
                 # After processing current line, if we are non in an array,
