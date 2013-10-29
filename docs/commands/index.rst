@@ -15,6 +15,7 @@ Converters
    odf2xliff
    prop2po
    php2po
+   and2po
    sub2po
    txt2po
    po2wordfast
@@ -58,6 +59,7 @@ understanding that will make the converters much easier to use and understand.
   and vice-versa.
 * :doc:`prop2po <prop2po>` -- Java property file (.properties) converter
 * :doc:`php2po <php2po>` -- PHP localisable string arrays converter.
+* :doc:`and2po <and2po>` -- Android String Resource files (.xml) converter.
 * :doc:`sub2po <sub2po>` -- Converter for various subtitle files
 * :doc:`txt2po <txt2po>` -- Plain text to PO converter
 * :doc:`po2wordfast <po2wordfast>` -- Wordfast Translation Memory converter

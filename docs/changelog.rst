@@ -19,6 +19,8 @@ behaviour if required.
   are not supported on Python 2.5 but they are on later versions.
 - Properties will no longer drop entries where source and translation are
   identical.
+- Complete rewrite of Android String Resource format storage and new converters
+  :doc:`and2po <and2po>` and :doc:`po2and <po2and>`.
 
 .. _changelog#1.10:
 
