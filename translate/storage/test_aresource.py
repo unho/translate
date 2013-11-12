@@ -579,3 +579,29 @@ class TestAndroidResourceFile(test_monolingual.TestMonolingualStore):
 """
         android_roundtrip = self.__regen_android(xml)
         assert expected_xml == android_roundtrip
+
+
+
+
+
+
+
+
+
+    #TODO check all the cases you can come with:
+    #### - no units,
+    #### - several units,
+    #### - mixed translatable/untranslatable units,
+    #### - mixed units/comments,
+    #### - commented units,
+    #### - comment that spans several lines,
+    #### - comment followed by several-lines comment followed by comment,
+    #### - comment after last unit,
+    #### - multiline units,
+    # - units with escaping,
+    # - 
+    #TODO check in tests for other formats to make sure nothing is left behind.
+    #TODO create tests for the escape_android() and unescape_android() functions
+
+
+
