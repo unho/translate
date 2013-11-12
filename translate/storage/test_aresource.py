@@ -3,6 +3,7 @@
 
 from lxml import etree
 
+from translate.misc import wStringIO
 from translate.storage import aresource, test_monolingual
 
 
@@ -199,3 +200,382 @@ class TestAndroidResourceUnit(test_monolingual.TestMonolingualUnit):
 
 class TestAndroidResourceFile(test_monolingual.TestMonolingualStore):
     StoreClass = aresource.AndroidResourceFile
+
+    def __parse_android(self, android_source):
+        """Helper that parses Android source without requiring files."""
+        dummy_file = wStringIO.StringIO(android_source)
+        android_file = aresource.AndroidResourceFile(dummy_file)
+        return android_file
+
+    def __regen_android(self, android_source):
+        """Helper that converts Android source to AndroidResourceFile object
+        and back.
+        """
+        return str(self.__parse_android(android_source))
+
+    ############################ Tests ########################################
+
+    def test_parse_several_consecutive_comments(self):
+        """Check that several consecutive comments are correctly parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate the placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 1
+        unit = android_file.units[0]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 2
+        assert unit._comments[0] == (" Translators: Don't translate the "
+                                     "placeables. ")
+        assert unit._comments[1] == " Translators: Another comment for you. "
+
+    def test_roundtrip_several_consecutive_comments(self):
+        """Check that roundtrip keeps several consecutive comments."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate the placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert xml == android_roundtrip
+
+    def test_parse_no_strings(self):
+        """Check that several consecutive comments are correctly parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources/>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 0
+
+    def test_roundtrip_no_strings(self):
+        """Check that roundtrip keeps several consecutive comments."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources/>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert xml == android_roundtrip
+
+    def test_parse_several_strings(self):
+        """Check that several strings are correctly parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="hello">Hello!</string>
+  <string name="how">How are you?</string>
+  <string name="bye">Goodbye!</string>
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 3
+        unit = android_file.units[0]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 0
+        unit = android_file.units[1]
+        assert unit.getid() == "how"
+        assert unit.istranslatable() == True
+        assert unit.source == "How are you?"
+        assert len(unit._comments) == 0
+        unit = android_file.units[2]
+        assert unit.getid() == "bye"
+        assert unit.istranslatable() == True
+        assert unit.source == "Goodbye!"
+        assert len(unit._comments) == 0
+
+    def test_roundtrip_several_strings(self):
+        """Check that roundtrip keeps several strings."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="hello">Hello!</string>
+  <string name="how">How are you?</string>
+  <string name="bye">Goodbye!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert xml == android_roundtrip
+
+    def test_parse_translatable_and_untranslatable_strings(self):
+        """Check that translatable status for strings is correctly parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="hello">Hello!</string>
+  <string name="how" translatable="false">How are you?</string>
+  <string name="bye">Goodbye!</string>
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 3
+        unit = android_file.units[0]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 0
+        unit = android_file.units[1]
+        assert unit.getid() == "how"
+        assert unit.istranslatable() == False
+        assert unit.source == "How are you?"
+        assert len(unit._comments) == 0
+        unit = android_file.units[2]
+        assert unit.getid() == "bye"
+        assert unit.istranslatable() == True
+        assert unit.source == "Goodbye!"
+        assert len(unit._comments) == 0
+
+    def test_roundtrip_translatable_and_untranslatable_strings(self):
+        """Check that roundtrip keeps translatable status for strings."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="hello">Hello!</string>
+  <string name="how" translatable="false">How are you?</string>
+  <string name="bye">Goodbye!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert xml == android_roundtrip
+
+    def test_parse_strings_and_comments(self):
+        """Check that mixed strings and comments are correctly parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate the placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+  <string name="how" translatable="false">How are you?</string>
+  <!-- Translators: Comment for goodbye. -->
+  <string name="bye">Goodbye!</string>
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 3
+        unit = android_file.units[0]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 2
+        assert unit._comments[0] == (" Translators: Don't translate the "
+                                     "placeables. ")
+        assert unit._comments[1] == " Translators: Another comment for you. "
+        unit = android_file.units[1]
+        assert unit.getid() == "how"
+        assert unit.istranslatable() == False
+        assert unit.source == "How are you?"
+        assert len(unit._comments) == 0
+        unit = android_file.units[2]
+        assert unit.getid() == "bye"
+        assert unit.istranslatable() == True
+        assert unit.source == "Goodbye!"
+        assert len(unit._comments) == 1
+        assert unit._comments[0] == " Translators: Comment for goodbye. "
+
+    def test_roundtrip_strings_and_comments(self):
+        """Check that roundtrip keeps mixed strings and comments."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate the placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+  <string name="how" translatable="false">How are you?</string>
+  <!-- Translators: Comment for goodbye. -->
+  <string name="bye">Goodbye!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert xml == android_roundtrip
+
+    def test_parse_commented_strings(self):
+        """Check that commented strings are correctly parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="hello">Hello!</string>
+  <!--<string name="how" translatable="false">How are you?</string>-->
+  <!-- Translators: Comment for goodbye. -->
+  <string name="bye">Goodbye!</string>
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 2
+        unit = android_file.units[0]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 0
+        unit = android_file.units[1]
+        assert unit.getid() == "bye"
+        assert unit.istranslatable() == True
+        assert unit.source == "Goodbye!"
+        assert len(unit._comments) == 2
+        assert unit._comments[0] == ('<string name="how" translatable="false">'
+                                     'How are you?</string>')
+        assert unit._comments[1] == " Translators: Comment for goodbye. "
+
+    def test_roundtrip_commented_strings(self):
+        """Check that roundtrip keeps commented strings."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="hello">Hello!</string>
+  <!--<string name="how" translatable="false">How are you?</string>-->
+  <!-- Translators: Comment for goodbye. -->
+  <string name="bye">Goodbye!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert xml == android_roundtrip
+
+    def test_parse_multiline_comments(self):
+        """Check that multiline comments are correctly parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate
+ the
+ placeables. -->
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 1
+        unit = android_file.units[0]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 1
+        assert unit._comments[0] == (" Translators: Don't translate\n the\n "
+                                     "placeables. ")
+
+    def test_roundtrip_multiline_comments(self):
+        """Check that roundtrip keeps multiline comments."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate
+ the placeables. -->
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert xml == android_roundtrip
+
+    def test_parse_regular_and_multiline_comments(self):
+        """Check that regular and multiline comments are correctly parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: First comment for you. -->
+  <!-- Translators: Don't translate
+ the
+ placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 1
+        unit = android_file.units[0]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 3
+        assert unit._comments[0] == " Translators: First comment for you. "
+        assert unit._comments[1] == (" Translators: Don't translate\n the\n "
+                                     "placeables. ")
+        assert unit._comments[2] == " Translators: Another comment for you. "
+
+    def test_roundtrip_regular_and_multiline_comments(self):
+        """Check that roundtrip keeps regular and multiline comments."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: First comment for you. -->
+  <!-- Translators: Don't translate
+ the placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert xml == android_roundtrip
+
+    def test_parse_strips_comment_after_last_string(self):
+        """Check that comment after last string is not parsed."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate the placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+  <!-- Translators: This is the last comment. -->
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 1
+        unit = android_file.units[0]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 2
+        assert unit._comments[0] == (" Translators: Don't translate the "
+                                     "placeables. ")
+        assert unit._comments[1] == " Translators: Another comment for you. "
+
+    def test_roundtrip_strips_comment_after_last_string(self):
+        """Check that roundtrip strips the comment after last string."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate the placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+  <!-- Translators: This is the last comment. -->
+</resources>
+"""
+        expected_xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <!-- Translators: Don't translate the placeables. -->
+  <!-- Translators: Another comment for you. -->
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert expected_xml == android_roundtrip
+
+    def test_parse_strips_newline(self):
+        """Check that parsing a string with newline strips the newline."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="byeworld">Goodbye
+ world.</string>
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_file = self.__parse_android(xml)
+        assert len(android_file.units) == 2
+        unit = android_file.units[0]
+        assert unit.getid() == "byeworld"
+        assert unit.istranslatable() == True
+        assert unit.source == "Goodbye world."
+        assert len(unit._comments) == 0
+        unit = android_file.units[1]
+        assert unit.getid() == "hello"
+        assert unit.istranslatable() == True
+        assert unit.source == "Hello!"
+        assert len(unit._comments) == 0
+
+    def test_roundtrip_strips_newline(self):
+        """Check that roundtrip strips the newline."""
+        xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="byeworld">Goodbye
+ world.</string>
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        expected_xml = """<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="byeworld">Goodbye world.</string>
+  <string name="hello">Hello!</string>
+</resources>
+"""
+        android_roundtrip = self.__regen_android(xml)
+        assert expected_xml == android_roundtrip
