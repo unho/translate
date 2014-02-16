@@ -83,7 +83,7 @@ class po2xliff(object):
             outputstore = poxliff.PoXliffFile(templatefile, **kwargs)
         filename = inputstore.filename
         for inputunit in inputstore.units:
-            if inputunit.isblank():
+            if inputunit.is_blank:
                 continue
             transunitnode = self.convertunit(outputstore, inputunit, filename)
         return bytes(outputstore)

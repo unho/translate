@@ -509,7 +509,7 @@ class propunit(base.TranslationUnit):
         notes = self.getnotes()
         if notes:
             notes += u"\n"
-        if self.isblank():
+        if self.is_blank:
             return notes + u"\n"
         else:
             self.value = self.personality.encode(self.source, self.encoding)
@@ -559,9 +559,9 @@ class propunit(base.TranslationUnit):
     def removenotes(self):
         self.comments = []
 
-    def isblank(self):
-        """returns whether this is a blank element, containing only comments.
-        """
+    @property
+    def is_blank(self):
+        """Return whether this is a blank unit, containing only comments."""
         return not (self.name or self.value)
 
     def istranslatable(self):

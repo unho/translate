@@ -35,7 +35,7 @@ class po2tiki(object):
         """
         thetargetfile = tiki.TikiStore()
         for unit in thepofile.units:
-            if not (unit.isblank() or unit.isheader()):
+            if not (unit.is_blank or unit.isheader()):
                 newunit = tiki.TikiUnit(unit.source)
                 newunit.target = unit.target
                 locations = unit.getlocations()

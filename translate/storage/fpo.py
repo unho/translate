@@ -277,7 +277,8 @@ class pounit(pocommon.pounit):
         #TODO: fix up nicely
         return not self.getid() and len(self.target) > 0
 
-    def isblank(self):
+    @property
+    def is_blank(self):
         if self.isheader() or self.msgidcomment:
             return False
         if (self._msgidlen() == 0) and (self._msgstrlen() == 0) and len(self._msgctxt) == 0:
@@ -311,7 +312,7 @@ class pounit(pocommon.pounit):
         return super(pounit, self).istranslated() and not self.isobsolete()
 
     def istranslatable(self):
-        return not (self.isheader() or self.isblank() or self.isobsolete())
+        return not (self.isheader() or self.is_blank or self.isobsolete())
 
     def isfuzzy(self):
         return self.hastypecomment("fuzzy")
@@ -446,7 +447,7 @@ class pofile(pocommon.pofile):
         """
         self._cpo_store = cpo.pofile(noheader=True)
         for unit in self.units:
-            if not unit.isblank():
+            if not unit.is_blank:
                 self._cpo_store.addunit(cpo.pofile.UnitClass.buildfromunit(unit, self.encoding))
         if not self._cpo_store.header():
             #only add a temporary header

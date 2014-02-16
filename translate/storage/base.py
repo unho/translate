@@ -28,6 +28,7 @@ except ImportError:
     import pickle
 from io import BytesIO
 
+from translate.misc.deprecation import deprecated
 from translate.misc.multistring import multistring
 from translate.storage.placeables import StringElem, parse as rich_parse
 from translate.storage.workflow import StateEnum as states
@@ -404,7 +405,17 @@ class TranslationUnit(object):
         """Indicates whether this unit needs review."""
         return False
 
+    @deprecated("Use the is_blank property instead")
     def isblank(self):
+        """This has been deprecated in favor of the
+        :attr:`~.TranslationUnit.is_blank` property.
+
+        .. deprecated:: 1.12
+        """
+        return self.is_blank
+
+    @property
+    def is_blank(self):
         """Used to see if this unit has no source or target string.
 
         .. note::
@@ -690,7 +701,7 @@ class TranslationStore(object):
         self.id_index = {}
         for index, unit in enumerate(self.units):
             unit.index = index
-            if not (unit.isheader() or unit.isblank()):
+            if not (unit.isheader() or unit.is_blank):
                 self.add_unit_to_index(unit)
 
     def require_index(self):

@@ -40,7 +40,7 @@ def prop2inc(pf):
                     yield blank
                 # TODO: could convert commented # x=y back to # #define x y
                 yield comment + "\n"
-        if unit.isblank():
+        if unit.is_blank:
             pendingblanks.append("\n")
         else:
             definition = "#define %s %s\n" % (unit.name, unit.value.replace("\n", "\\n"))
@@ -59,7 +59,7 @@ def prop2it(pf):
                 yield comment.replace("# section: ", "", 1) + "\n"
             else:
                 yield comment.replace("#", ";", 1) + "\n"
-        if unit.isblank():
+        if unit.is_blank:
             yield ""
         else:
             definition = "%s=%s\n" % (unit.name, unit.value)
