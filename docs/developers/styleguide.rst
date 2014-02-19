@@ -218,6 +218,22 @@ Like in :pep:`8`, but:
     from . import php2po
 
 
+Order in classes
+~~~~~~~~~~~~~~~~
+
+Classes attributes and methods should keep the following order:
+
+- Class attributes
+- Any method decorated with ``@classmethod``
+- ``def __init__()``
+- ``def __str__()``
+- Any other method starting with ``__``
+- Properties
+- Any method starting with just one ``_``
+- ``def parse()``
+- Any other method
+
+
 Properties
 ~~~~~~~~~~
 
