@@ -64,7 +64,22 @@ def translate_idml(template, input_file, translatable_files):
             """Find the subtree in 'tree' which corresponds to the data in XML
             file 'filename'
             """
+            #root
+            #   `- ('document-content', 1)
+            #      `- ('body', 2)
+            #         |- ('text', 1)
+            #         |  `- ('p', 1)
+            #         |     `- <reference to a unit>
+            #         |- ('text', 2)
+            #         |  `- ('p', 1)
+            #         |     `- <reference to a unit>
+            #         `- ('text', 3)
+            #            `- ('p', 1)
+
+            #print("\n\n\n=============================================\nABOUT TO PARSE FOR %s\n=============================================" % filename)
             tree = build_unit_tree(store, filename)
+
+            #print("\nCHILDREN\n%s\n\n" % tree.children)
 
             try:
                 file_tree = tree.children[root_dom_element_name, 0]
@@ -83,6 +98,11 @@ def translate_idml(template, input_file, translatable_files):
         template IDML package, and the values are etree ElementTree instances
         for each of those files.
         """
+        #dom_trees = {#TODO borrar
+        #    'Stories/Story_u49f.xml': XPathTree,
+        #    'meta.xml': XPathTree,
+        #    'styles.xml': XPathTree,
+        #}
         def get_po_doms(unit):
             """Return a tuple with unit source and target DOM objects.
 
@@ -124,11 +144,13 @@ def translate_idml(template, input_file, translatable_files):
                                               INLINE_ELEMENTS)
         for filename, dom_tree in dom_trees.iteritems():
             file_unit_tree = unit_trees[filename]
+            print("\n****************************************\nNOW TRANSLATING %s\n****************************************\n" % filename)#TODO borrar
             apply_translations(dom_tree.getroot(), file_unit_tree,
                                replace_dom_text(make_parse_state,
                                                 dom_retriever=get_po_doms,
                                                 process_translatable=process_idml_translatable))
         return dom_trees
+
 
     dom_trees = load_dom_trees(template)
     unit_trees = load_unit_tree(input_file)

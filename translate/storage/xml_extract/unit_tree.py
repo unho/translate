@@ -124,6 +124,12 @@ def build_unit_tree(store, filename=None):
                 # trying to get units for.
                 # This is not used for ODF, right now only for IDML.
                 continue
+            #un_tgt = ""#TODO borrar
+            #if unit.target:#TODO borrar
+            #    un_tgt = unit.target#TODO borrar
+            #print("\n%s:     %s\n" % (filename, un_tgt))#TODO borrar
             location = _split_xpath(locations[0])
+            #print("\n%s\n" % filename)#TODO borrar
+            #print("\n%s\n" % location)#TODO borrar
             _add_unit_to_tree(tree, location, unit)
     return tree

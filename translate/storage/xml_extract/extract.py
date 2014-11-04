@@ -195,6 +195,10 @@ def process_idml_translatable(dom_node, state):
     return []
 
 
+#===========================================================================
+#===========================================================================
+
+
 def _process_children(dom_node, state, process_func):
     """Process an untranslatable DOM node.
 
@@ -260,6 +264,7 @@ def find_translatable_dom_nodes(dom_node, state,
 
     with parse_status_set(namespace, tag, state):
         if (namespace, tag) not in state.no_translate_content_elements:
+            #print("++++++++ IN FIND TRANSLATABLE_DOM_NODES:  %s" % tag)#TODO borrar
             return process_func(dom_node, state)
         else:
             return _process_children(dom_node, state, process_func)
@@ -340,6 +345,8 @@ def make_postore_adder(store, id_maker, filename):
         unit_source = unit_source[unit_source.find(">", 1) + 1:]
         unit_source = unit_source[:unit_source.rfind("<", 1)]
 
+        print("TRANS:\n%s" % unit_source)#TODO borrar
+
         # Create the PO unit and add it to the PO store.
         po_unit = store.UnitClass(unit_source)
         po_unit.addlocation(translatable.xpath)
@@ -356,11 +363,15 @@ def _walk_idml_translatable_tree(translatables, store_adder,
     Inline translatables are not added to the Store.
     """
     for translatable in translatables:
+        #print("possible TRANSLATABLE: %s" % str(translatable.dom_node.tag))#TODO borrar
+
         if translatable.dom_node.tag == "ParagraphStyleRange":
+            print("   About to add TRANSLATABLE: %s" % str(translatable.dom_node.tag))#TODO borrar
             store_adder(parent_translatable, translatable)
             continue
 
         new_parent_translatable = parent_translatable
+        #print("__________BEFORE ITerating again")#TODO borrar
         _walk_idml_translatable_tree(translatable.placeables, store_adder,
                                      new_parent_translatable)
 
@@ -381,6 +392,19 @@ def _walk_translatable_tree(translatables, store_adder, parent_translatable):
                                 new_parent_translatable)
 
 
+def recursive_print(translatable, levels):
+    for chunk in translatable.source:
+        if isinstance(chunk, unicode):
+            print("  " * levels + "STRING: " + chunk)
+        else:
+            if chunk.is_inline:
+                print("  " * levels + "G Chunk     " + str(chunk.dom_node.tag))
+                recursive_print(chunk, levels + 1)
+            else:
+                print("  " * levels + "X Chunk     " + str(chunk.dom_node.tag))
+                recursive_print(chunk, levels + 1)
+
+
 def reverse_map(a_map):
     return dict((value, key) for key, value in a_map.iteritems())
 
@@ -393,6 +417,12 @@ def build_idml_store(odf_file, store, parse_state, store_adder=None):
     parse_state.nsmap = reverse_map(root.nsmap)
     translatables = find_translatable_dom_nodes(root, parse_state,
                                                 process_idml_translatable)
+    #print("\n\n\nIN THE MIDDLE")#TODO borrar
+
+    #for translatable in translatables:
+    #    print("Root Translatable     " + str(translatable.dom_node.tag))
+    #    recursive_print(translatable, 1)
+
     _walk_idml_translatable_tree(translatables, store_adder, None)
     return tree
 

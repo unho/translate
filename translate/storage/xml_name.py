@@ -63,6 +63,8 @@ class XmlNamer(object):
         # If the user doesn't pass an argument into 'tag'
         # then namespace_shortcut contains a tag of the form
         # 'short-namespace:tag'
+        #print("\nSELF.NSMAP\n%s\n" % self.nsmap)#TODO borrar
+        #print("\n\nNSMAP: %s\nTAG: %s\n\n" % (namespace_shortcut, tag))#TODO borrar
         if tag is None:
             try:
                 namespace_shortcut, tag = namespace_shortcut.split(':')
@@ -70,6 +72,7 @@ class XmlNamer(object):
                 # If there is no namespace in namespace_shortcut.
                 tag = namespace_shortcut.lstrip("{}")
                 return tag
+        #print("\nAFTER\nNSMAP: %s\nTAG: %s\n\n" % (namespace_shortcut, tag))#TODO borrar
         return "{%s}%s" % (self.nsmap[namespace_shortcut], tag)
 
     def namespace(self, namespace_shortcut):

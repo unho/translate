@@ -45,10 +45,16 @@ def _get_tag_arrays(dom_node):
 
 def apply_translations(dom_node, unit_node, do_translate):
     tag_array = _get_tag_arrays(dom_node)
+    #print("\nTAG_ARRAY: %s\n" % tag_array)
     for unit_child_index, unit_child in unit_node.children.iteritems():
         tag, index = unit_child_index
+        #print("\n%s     %s\n" % (tag, index))#TODO borrar
         try:
-            dom_child = tag_array[XmlNamer(dom_node).name(tag)][index]
+            the_namer = XmlNamer(dom_node)
+            whatever = the_namer.name(tag)
+            #print("\nTAG_ARRAY: %s\n" % tag_array)#TODO borrar
+            #print("\nwhatever: %s\n" % whatever)
+            dom_child = tag_array[whatever][index]
             apply_translations(dom_child, unit_child, do_translate)
         # Raised if tag is not in tag_array. We might want to complain to the
         # user in the future.

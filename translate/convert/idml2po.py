@@ -46,12 +46,19 @@ def convert_idml(inputfile, outputfile, template):
     id_maker = IdMaker()  # Create it here to avoid having repeated ids.
 
     for filename, translatable_file in contents.iteritems():
+        print("\n\n\n\n############################### NU STOR: %s\n\n" % filename)#TODO borrar
         parse_state = ParseState(NO_TRANSLATE_ELEMENTS, INLINE_ELEMENTS)
         po_store_adder = make_postore_adder(store, id_maker, filename)
         build_idml_store(StringIO(translatable_file), store, parse_state,
                          store_adder=po_store_adder)
+        #if store.units:#TODO borrar
+        #    print("\n\n\n\n\n\nBREAKING IN %s\n" % filename)#TODO borrar
+        #    break#TODO borrar
+        #if filename == "Stories/Story_u167.xml":#TODO borrar
+        #    break#TODO borrar
 
     store.save()
+    print("\n\nNumber of units: %d\n" % len(store.units))#TODO borrar
     return True
 
 

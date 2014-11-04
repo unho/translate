@@ -91,6 +91,11 @@ def open_idml(filename):
     # 'Stories/Story_u49f.xml' and the values the strings for those files.
     return dict((filename, z.read(filename))
                 for filename in z.namelist() if filename.startswith('Stories/'))
+#    return {
+#        'Stories/Story_u49f.xml': z.read("Stories/Story_u49f.xml"),
+#        'meta.xml': z.read("meta.xml"),
+#        'styles.xml': z.read("styles.xml"),
+#    }
 
 
 def copy_idml(input_zip, output_zip, exclusion_list):
