@@ -318,3 +318,33 @@ msgstr ""
 
     pofile.setprojectstyle('complete-rubbish')
     assert pofile.getprojectstyle() == 'complete-rubbish'
+
+
+def test_header_with_blank_comment_lines():
+    posource = r'''#
+#    here is my comment
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-03-08 17:30+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+msgid "Hi"
+msgstr "Ola"
+'''
+    pofile = poparse(posource)
+    new_header = "\n".join(str(pofile).split("\n")[:-4])
+    old_header = "\n".join(posource.split("\n")[:-4])
+    assert new_header == old_header
+
+    pofile.units[1].target = "Deica"
+    new_header = "\n".join(str(pofile).split("\n")[:-4])
+    assert new_header == old_header
