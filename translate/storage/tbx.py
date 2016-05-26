@@ -21,7 +21,7 @@
 
 from lxml import etree
 
-from translate.misc.xml_helpers import setXMLlang, getXMLspace
+from translate.misc.xml_helpers import getXMLlang, setXMLlang, getXMLspace
 from translate.storage import lisa
 
 
@@ -129,3 +129,11 @@ class tbxfile(lisa.LISAfile):
     def addheader(self):
         """Initialise headers with TBX specific things."""
         setXMLlang(self.document.getroot(), self.sourcelanguage)
+
+    def setsourcelanguage(self, language):
+        if language:
+            setXMLlang(self.document.getroot(), self.sourcelanguage)
+
+    def getsourcelanguage(self):
+        return getXMLlang(self.document.getroot())
+    sourcelanguage = property(getsourcelanguage, setsourcelanguage)

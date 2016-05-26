@@ -23,6 +23,7 @@ See: http://docs.translatehouse.org/projects/translate-toolkit/en/latest/command
 for examples and usage instructions
 """
 
+from translate.misc.xml_helpers import getXMLlang
 from translate.storage import po, tbx
 
 
@@ -35,9 +36,12 @@ class tbx2po(object):
         """Converts a tbxfile to a tbxfile, and returns it. uses templatepo if
         given at construction
         """
+        print("\n\n\n%s\n\n\n" % getXMLlang(tbxfile.document.getroot()))
         self.pofile = po.pofile()
         for tbxunit in tbxfile.units:
             term = po.pounit()
+            #print("%s" % getXMLlang(tbxunit))
+            print(tbxunit.getsourcelanguage())
             term.source = tbxunit.source
             term.target = tbxunit.target
             term.setcontext(tbxunit.getnotes('definition'))
