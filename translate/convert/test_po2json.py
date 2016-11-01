@@ -13,7 +13,7 @@ class TestPO2JSON(object):
         input_file = wStringIO.StringIO(po_source)
         json_file = wStringIO.StringIO(json_template)
         input_po = po.pofile(input_file)
-        convertor = po2json.rejson(json_template, input_po)
+        convertor = po2json.po2json(json_template, input_po)
         output_json = convertor.convertstore()
         return output_json.decode('utf-8')
 
