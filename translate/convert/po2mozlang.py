@@ -51,8 +51,9 @@ class po2lang(object):
         return thetargetfile
 
 
-def convertlang(inputfile, outputfile, templates, includefuzzy=False, mark_active=True,
-                outputthreshold=None, remove_untranslated=None):
+def run_converter(inputfile, outputfile, templates, includefuzzy=False,
+                  mark_active=True, outputthreshold=None,
+                  remove_untranslated=None):
     """reads in stdin using fromfileclass, converts using convertorclass,
     writes to stdout
     """
@@ -71,12 +72,13 @@ def convertlang(inputfile, outputfile, templates, includefuzzy=False, mark_activ
 
 
 formats = {
-    "po": ("lang", convertlang),
-    ("po", "lang"): ("lang", convertlang),
+    "po": ("lang", run_converter),
+    ("po", "lang"): ("lang", run_converter),
 }
 
 
 def main(argv=None):
+    # Handle command line options.
     parser = convert.ConvertOptionParser(formats, usetemplates=True,
                                          description=__doc__)
     parser.add_option(

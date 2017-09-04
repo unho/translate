@@ -24,60 +24,70 @@ See: http://docs.translatehouse.org/projects/translate-toolkit/en/latest/command
 for examples and usage instructions
 """
 
+from translate.convert import convert
 from translate.storage import csvl10n, tbx
 
 
 class csv2tbx(object):
-    """a class that takes translations from a .csv file and puts them in a .tbx
-    file
-    """
+    """Convert a CSV file to a TBX file."""
 
-    def __init__(self, charset=None):
-        """construct the converter..."""
+    SourceStoreClass = csvl10n.csvfile
+    TargetStoreClass = tbx.tbxfile
+    TargetUnitClass = tbx.tbxunit
+
+    def __init__(self, input_file, output_file, charset=None,
+                 column_order=None):
+        """Initialize the converter."""
         self.charset = charset
+        self.column_order = column_order
 
-    def convertfile(self, csvfile):
-        """converts a csvfile to a tbxfile, and returns it. uses templatepo if
-        given at construction
-        """
+        self.output_file = output_file
+        self.source_store = self.SourceStoreClass(input_file,
+                                                 fieldnames=column_order)
+        self.target_store = self.TargetStoreClass()
+
+    def convert_store(self):
+        """Convert a single source format file to a target format file."""
         mightbeheader = True
-        self.tbxfile = tbx.tbxfile()
-        for csvunit in csvfile.units:
+        for source_unit in self.source_store.units:
             if mightbeheader:
                 # ignore typical header strings...
                 mightbeheader = False
-                if csvunit.match_header():
+                if source_unit.match_header():
                     continue
-                if (len(csvunit.location.strip()) == 0 and
-                    csvunit.source.find("Content-Type:") != -1):
+                if (len(source_unit.location.strip()) == 0 and
+                    source_unit.source.find("Content-Type:") != -1):
                     continue
-            term = tbx.tbxunit.buildfromunit(csvunit)
+            target_unit = self.TargetUnitClass.buildfromunit(source_unit)
             # TODO: we might want to get the location or other information
             # from CSV
-            self.tbxfile.addunit(term)
-        return self.tbxfile
+            self.target_store.addunit(target_unit)
+
+    def run(self):
+        """Run the converter."""
+        self.convert_store()
+
+        if self.target_store.isempty():
+            return 0
+
+        self.target_store.serialize(self.output_file)
+        return 1
 
 
-def convertcsv(inputfile, outputfile, templatefile, charset=None,
-               columnorder=None):
-    """reads in inputfile using csvl10n, converts using csv2tbx, writes to
-    outputfile
-    """
-    inputstore = csvl10n.csvfile(inputfile, fieldnames=columnorder)
-    convertor = csv2tbx(charset=charset)
-    outputstore = convertor.convertfile(inputstore)
-    if len(outputstore.units) == 0:
-        return 0
-    outputstore.serialize(outputfile)
-    return 1
+def run_converter(inputfile, outputfile, templatefile, charset=None,
+                  columnorder=None):
+    """Wrapper around converter."""
+    return csv2tbx(inputfile, outputfile, charset=charset,
+                   column_order=columnorder).run()
+
+
+formats = {
+    ("csv", "tbx"): ("tbx", run_converter),
+    ("csv", None): ("tbx", run_converter),
+}
 
 
 def main():
-    from translate.convert import convert
-    formats = {
-        ("csv", "tbx"): ("tbx", convertcsv),
-        ("csv", None): ("tbx", convertcsv),
-    }
     parser = convert.ConvertOptionParser(formats, usetemplates=False,
                                          description=__doc__)
     parser.add_option(

@@ -28,67 +28,82 @@ from translate.storage import l20n, po
 
 
 class l20n2po(object):
-    """convert a .l20n file to a .po file for handling the translation.
-    """
+    """Convert one or two l20n files to a single PO file."""
 
-    def __init__(self, blankmsgstr=False, duplicatestyle="msgctxt"):
-        self.blankmsgstr = blankmsgstr
-        self.duplicatestyle = duplicatestyle
+    SourceStoreClass = l20n.l20nfile
+    TargetStoreClass = po.pofile
+    TargetUnitClass = po.pounit
 
-    def convert_l20nunit(self, unit):
-        po_unit = po.pounit(encoding="UTF-8")
-        po_unit.setid(unit.getid())
-        po_unit.addlocation(unit.getid())
-        po_unit.source = unit.value
-        po_unit.addnote(unit.comment, "developer")
+    def __init__(self, input_file, output_file, template_file=None,
+                 blank_msgstr=False, duplicate_style="msgctxt"):
+        """Initialize the converter."""
+        self.blank_msgstr = blank_msgstr
+        self.duplicate_style = duplicate_style
 
-        return po_unit
+        self.output_file = output_file
+        self.source_store = self.SourceStoreClass(input_file)
+        self.target_store = self.TargetStoreClass()
+        self.template_store = None
 
-    def convert_store(self, l20n_store):
-        """converts a .l20n file to a .po file..."""
-        target_store = po.pofile()
-        l20n_store.makeindex()
-        for l20nunit in l20n_store.units:
-            pounit = self.convert_l20nunit(l20nunit)
-            target_store.addunit(pounit)
-        target_store.removeduplicates(self.duplicatestyle)
-        return target_store
+        if template_file is not None:
+            self.template_store = self.SourceStoreClass(template_file)
 
-    def merge_stores(self, origl20nfile, translatedl20nfile):
-        """converts two .l20n files to a .po file..."""
-        target_store = po.pofile()
-        translatedl20nfile.makeindex()
-        for l20nunit in origl20nfile.units:
-            pounit = self.convert_l20nunit(l20nunit)
-            target_store.addunit(pounit)
-            for location in pounit.getlocations():
-                if location in translatedl20nfile.id_index:
-                    l20nunit = translatedl20nfile.id_index[location]
-                    pounit.target = l20nunit.target
-        target_store.removeduplicates(self.duplicatestyle)
-        return target_store
+        self.source_store.makeindex()
+
+    def convert_unit(self, unit):
+        """Convert a source format unit to a target format unit."""
+        target_unit = self.TargetUnitClass(encoding="UTF-8")
+        target_unit.setid(unit.getid())
+        target_unit.addlocation(unit.getid())
+        target_unit.source = unit.value
+        target_unit.addnote(unit.comment, "developer")
+        return target_unit
+
+    def convert_store(self):
+        """Convert a single source format file to a target format file."""
+        for source_unit in self.source_store.units:
+            target_unit = self.convert_unit(source_unit)
+            self.target_store.addunit(target_unit)
+
+    def merge_stores(self):
+        """Convert two source format files to a target format file."""
+        for template_unit in self.template_store.units:
+            target_unit = self.convert_unit(template_unit)
+            self.target_store.addunit(target_unit)
+
+            for location in target_unit.getlocations():
+                if location in self.source_store.id_index:
+                    source_unit = self.source_store.id_index[location]
+                    target_unit.target = source_unit.target
+
+    def run(self):
+        """Run the converter."""
+        if self.template_store is None:
+            self.convert_store()
+        else:
+            self.merge_stores()
+
+        self.target_store.removeduplicates(self.duplicate_style)
+
+        if self.target_store.isempty():
+            return 0
+
+        self.target_store.serialize(self.output_file)
+        return 1
 
 
-def convertl20n(inputfile, outputfile, templatefile,
-                pot=False, duplicatestyle="msgctxt"):
-    inputstore = l20n.l20nfile(inputfile)
-    convertor = l20n2po(blankmsgstr=pot, duplicatestyle=duplicatestyle)
-    if templatefile is None:
-        outputstore = convertor.convert_store(inputstore)
-    else:
-        templatestore = l20n.l20nfile(templatefile)
-        outputstore = convertor.merge_stores(templatestore, inputstore)
-    if outputstore.isempty():
-        return 0
-    outputstore.serialize(outputfile)
-    return 1
+def run_converter(inputfile, outputfile, templatefile, pot=False,
+                  duplicatestyle="msgctxt"):
+    """Wrapper around converter."""
+    return l20n2po(inputfile, outputfile, templatefile, blank_msgstr=pot,
+                   duplicate_style=duplicatestyle).run()
 
 
 formats = {
-    "ftl": ("po", convertl20n),
-    ("ftl", "ftl"): ("po", convertl20n),
-    "l20n": ("po", convertl20n),
-    ("l20n", "l20n"): ("po", convertl20n),
+    "ftl": ("po", run_converter),
+    ("ftl", "ftl"): ("po", run_converter),
+    "l20n": ("po", run_converter),
+    ("l20n", "l20n"): ("po", run_converter),
 }
 
 

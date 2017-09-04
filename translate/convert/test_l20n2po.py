@@ -10,22 +10,19 @@ class TestL20n2PO(object):
     def l20n2po(self, l20n_source, l20n_template=None):
         """helper that converts .ftl (l20n) source to po source without requiring files"""
         inputfile = wStringIO.StringIO(l20n_source)
-        input_l20n = l20n.l20nfile(inputfile)
-        convertor = l20n2po.l20n2po()
-        if l20n_template:
-            templatefile = wStringIO.StringIO(l20n_template)
-            template_l20n = l20n.l20nfile(templatefile)
-            outputpo = convertor.merge_stores(template_l20n, input_l20n)
-        else:
-            outputpo = convertor.convert_store(input_l20n)
-        return outputpo
+        outputfile = wStringIO.StringIO()
+        templatefile = wStringIO.StringIO(l20n_template) if l20n_template else None
+        converter = l20n2po.l20n2po(inputfile, outputfile, templatefile)
+        converter.run()
+        return converter.target_store
 
     def convert_l20n(self, l20n_source):
         """call the convert_l20n, return the outputfile"""
         inputfile = wStringIO.StringIO(l20n_source)
         outputfile = wStringIO.StringIO()
         templatefile = None
-        assert l20n2po.convertl20n(inputfile, outputfile, templatefile)
+        converter = l20n2po.l20n2po(inputfile, outputfile, templatefile)
+        assert converter.run()
         return outputfile.getvalue()
 
     def singleelement(self, pofile):

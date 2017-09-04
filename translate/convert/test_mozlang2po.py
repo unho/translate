@@ -10,17 +10,17 @@ class TestLang2PO(object):
     def lang2po(self, source):
         """helper that converts .lang source to po source without requiring files"""
         inputfile = wStringIO.StringIO(source)
-        inputlang = lang.LangStore(inputfile)
-        convertor = mozlang2po.lang2po()
-        outputpo = convertor.convertstore(inputlang)
-        return outputpo
+        outputfile = wStringIO.StringIO()
+        convertor = mozlang2po.lang2po(inputfile, outputfile)
+        convertor.run()
+        return convertor.target_store
 
     def convertlng(self, source):
         """call the convertlng, return the outputfile"""
         inputfile = wStringIO.StringIO(source)
         outputfile = wStringIO.StringIO()
         templatefile = None
-        assert lang2po.convertlang(inputfile, outputfile, templatefile)
+        assert lang2po.run_converter(inputfile, outputfile, templatefile)
         return outputfile.getvalue()
 
     def singleelement(self, pofile):

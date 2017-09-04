@@ -23,63 +23,93 @@
 """Convert Mozilla .lang files to Gettext PO localization files.
 """
 
+from translate.convert import convert
 from translate.storage import mozilla_lang as lang, po
 
 
+class ConverterCantMergeError(Exception):
+    pass
+
+
 class lang2po(object):
+    SourceStoreClass = lang.LangStore
+    TargetStoreClass = po.pofile
+    TargetUnitClass = po.pounit
 
-    def __init__(self, duplicatestyle="msgctxt"):
-        self.duplicatestyle = duplicatestyle
+    def __init__(self, input_file, output_file, template_file=None,
+                 blank_msgstr=False, duplicate_style="msgctxt",
+                 encoding="utf-8"):
+        """Initialize the converter."""
+        self.blank_msgstr = blank_msgstr
+        self.duplicate_style = duplicate_style
 
-    def convertstore(self, thelangfile):
-        """converts a file to .po format"""
-        thetargetfile = po.pofile()
+        self.output_file = output_file
+        self.source_store = self.SourceStoreClass(input_file, encoding=encoding)
+        self.target_store = self.TargetStoreClass()
+        self.template_store = None
 
-        # Set up the header
-        targetheader = thetargetfile.header()
-        targetheader.addnote("extracted from %s" %
-                             thelangfile.filename, "developer")
+        self.extraction_msg = None
 
-        # For each lang unit, make the new po unit accordingly
-        for langunit in thelangfile.units:
-            newunit = thetargetfile.addsourceunit(langunit.source)
-            newunit.target = langunit.target
-            newunit.addlocations(langunit.getlocations())
-            newunit.addnote(langunit.getnotes(), 'developer')
+    def convert_unit(self, unit):
+        """Convert a source format unit to a target format unit."""
+        target_unit = self.TargetUnitClass(encoding="UTF-8")
+        target_unit.source = unit.source
+        target_unit.target = unit.target
+        target_unit.addlocations(unit.getlocations())
+        target_unit.addnote(unit.getnotes(), 'developer')
+        return target_unit
 
-        # Remove duplicates, because we can
-        thetargetfile.removeduplicates(self.duplicatestyle)
-        return thetargetfile
+    def convert_store(self):
+        """Convert a single source format file to a target format file."""
+        self.extraction_msg = "extracted from %s" % self.source_store.filename
+
+        for source_unit in self.source_store.units:
+            target_unit = self.convert_unit(source_unit)
+            self.target_store.addunit(target_unit)
+
+    def merge_stores(self):
+        """Convert two source format files to a target format file."""
+        raise ConverterCantMergeError
+
+    def run(self):
+        """Run the converter."""
+        if self.template_store is None:
+            self.convert_store()
+        else:
+            self.merge_stores()
+
+        if self.extraction_msg:
+            self.target_store.header().addnote(self.extraction_msg, "developer")
+
+        self.target_store.removeduplicates(self.duplicate_style)
+
+        if self.target_store.isempty():
+            return 0
+
+        self.target_store.serialize(self.output_file)
+        return 1
 
 
-def convertlang(inputfile, outputfile, templates, pot=False,
-                duplicatestyle="msgctxt", encoding="utf-8"):
-    """reads in stdin using fromfileclass, converts using convertorclass,
-    writes to stdout
-    """
-    inputstore = lang.LangStore(inputfile, encoding=encoding)
-    convertor = lang2po(duplicatestyle=duplicatestyle)
-    outputstore = convertor.convertstore(inputstore)
-    if outputstore.isempty():
-        return 0
-    outputstore.serialize(outputfile)
-    return 1
+def run_converter(inputfile, outputfile, templates, pot=False,
+                  duplicatestyle="msgctxt", encoding="utf-8"):
+    """Wrapper around converter."""
+    return lang2po(inputfile, outputfile, templates, blank_msgstr=pot,
+                   duplicate_style=duplicatestyle, encoding=encoding).run()
 
 
 formats = {
-    "lang": ("po", convertlang)
+    "lang": ("po", run_converter)
 }
 
 
 def main(argv=None):
-    from translate.convert import convert
     parser = convert.ConvertOptionParser(formats, usepots=True,
                                          description=__doc__)
     parser.add_option(
         "", "--encoding", dest="encoding", default='utf-8',
         help="The encoding of the input file (default: UTF-8)")
-    parser.passthrough.append("encoding")
     parser.add_duplicates_option()
+    parser.passthrough.append("encoding")
     parser.run(argv)
 
 

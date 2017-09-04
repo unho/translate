@@ -290,12 +290,6 @@ class LISAfile(base.TranslationStore):
         self.namespace = self.document.getroot().nsmap.get(None, None)
         self.body = self.document.find('//%s' % self.namespaced(self.bodyNode))
 
-    def addsourceunit(self, source):
-        """Adds and returns a new unit with the given string as first entry."""
-        newunit = self.UnitClass(source)
-        self.addunit(newunit)
-        return newunit
-
     def addunit(self, unit, new=True):
         unit.namespace = self.namespace
         super(LISAfile, self).addunit(unit)

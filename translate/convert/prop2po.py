@@ -26,6 +26,7 @@ for examples and usage instructions.
 import logging
 import six
 
+from translate.convert import convert
 from translate.convert.accesskey import UnitMixer
 from translate.storage import po, properties
 
@@ -297,8 +298,8 @@ def convertstrings(inputfile, outputfile, templatefile, personality="strings",
                        duplicatestyle=duplicatestyle, encoding=encoding)
 
 
-def convertmozillaprop(inputfile, outputfile, templatefile, pot=False,
-                       duplicatestyle="msgctxt"):
+def convertmozillaprop(inputfile, outputfile, templatefile, personality="mozilla",
+                       pot=False, duplicatestyle="msgctxt", encoding=None):
     """Mozilla specific convertor function"""
     return convertprop(inputfile, outputfile, templatefile,
                        personality="mozilla", pot=pot,
@@ -324,18 +325,32 @@ def convertprop(inputfile, outputfile, templatefile, personality="java",
     return 1
 
 
+def run_converter(inputfile, outputfile, templatefile, personality=None,
+                  pot=False, duplicatestyle="msgctxt", encoding=None):
+    """Wrapper around converter."""
+    if personality is None:
+        # If no personality is given then choose based on input_file extension.
+        input_file_extension = inputfile  # TODO get input_file extension.
+        personality = {
+            'strings': 'strings',
+            'lang': 'mozilla',
+        }.get(input_file_extension, 'java')
+    return convertprop(inputfile, outputfile, templatefile,
+                       personality=personality, pot=pot,
+                       duplicatestyle=duplicatestyle)
+
+
 formats = {
-    "properties": ("po", convertprop),
-    ("properties", "properties"): ("po", convertprop),
-    "lang": ("po", convertprop),
-    ("lang", "lang"): ("po", convertprop),
-    "strings": ("po", convertstrings),
-    ("strings", "strings"): ("po", convertstrings),
+    "properties": ("po", run_converter),
+    ("properties", "properties"): ("po", run_converter),
+    "lang": ("po", run_converter),
+    ("lang", "lang"): ("po", run_converter),
+    "strings": ("po", run_converter),
+    ("strings", "strings"): ("po", run_converter),
 }
 
 
 def main(argv=None):
-    from translate.convert import convert
     parser = convert.ConvertOptionParser(formats, usetemplates=True,
                                          usepots=True,
                                          description=__doc__)

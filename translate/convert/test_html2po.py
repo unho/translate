@@ -10,9 +10,13 @@ class TestHTML2PO(object):
     def html2po(self, markup, includeuntagged=False, duplicatestyle="msgctxt", keepcomments=False):
         """Helper to convert html to po without a file."""
         inputfile = wStringIO.StringIO(markup)
-        convertor = html2po.html2po()
-        outputpo = convertor.convertfile(inputfile, "test", includeuntagged, duplicatestyle, keepcomments)
-        return outputpo
+        outputfile = wStringIO.StringIO()
+        converter = html2po.html2po(inputfile, outputfile,
+                                    duplicate_style=duplicatestyle,
+                                    include_untagged=includeuntagged,
+                                    keep_comments=keepcomments)
+        converter.run()
+        return converter.target_store
 
     def po2html(self, posource, htmltemplate):
         """Helper to convert po to html without a file."""
