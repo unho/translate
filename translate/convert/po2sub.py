@@ -28,50 +28,77 @@ from translate.storage import po
 
 
 class po2sub(object):
+    """Convert a PO file and a template subtitles file to a subtitles file."""
 
-    def __init__(self, templatefile, inputstore, includefuzzy=False):
+    SourceStoreClass = po.pofile
+    TargetStoreClass = None
+    MissingTemplateMessage = "A template subtitles file must be provided."
+
+    def __init__(self, input_file, output_file, template_file=None,
+                 include_fuzzy=False, output_threshold=None):
+        """Initialize the converter."""
+
+        if template_file is None:
+            raise ValueError(self.MissingTemplateMessage)
+
         from translate.storage import subtitles
+        self.TargetStoreClass = subtitles.SubtitleFile
 
-        self.includefuzzy = includefuzzy
-        self.templatefile = templatefile
-        self.templatestore = subtitles.SubtitleFile(templatefile)
-        self.inputstore = inputstore
+        self.source_store = self.SourceStoreClass(input_file)
+
+        self.should_output_store = convert.should_output_store(
+            self.source_store, output_threshold
+        )
+        if self.should_output_store:
+            self.include_fuzzy = include_fuzzy
+            self.output_threshold = output_threshold
+
+            self.output_file = output_file
+            self.template_store = self.TargetStoreClass(template_file)
+            self.target_store = self.TargetStoreClass()
+
+            self.source_store.makeindex()
 
     def convert_store(self):
-        self.inputstore.makeindex()
-        for unit in self.templatestore.units:
+        """Convert a source file to a target file using a template file.
+
+        Source file is in source format, while target and template files use
+        target format.
+        """
+        for unit in self.template_store.units:
             for location in unit.getlocations():
-                if location in self.inputstore.locationindex:
-                    inputunit = self.inputstore.locationindex[location]
-                    if inputunit.isfuzzy() and not self.includefuzzy:
+                if location in self.source_store.locationindex:
+                    input_unit = self.source_store.locationindex[location]
+                    if input_unit.isfuzzy() and not self.include_fuzzy:
                         unit.target = unit.source
                     else:
-                        unit.target = inputunit.target
+                        unit.target = input_unit.target
                 else:
                     unit.target = unit.source
-        return bytes(self.templatestore)
+        self.target_store = self.template_store
+
+    def run(self):
+        """Run the converter."""
+        if not self.should_output_store:
+            return 0
+
+        self.convert_store()
+        self.target_store.serialize(self.output_file)
+        return 1
 
 
-def convertsub(inputfile, outputfile, templatefile, includefuzzy=False,
-               outputthreshold=None):
-    if templatefile is None:
-        raise ValueError("must have template file for subtitle files")
-
-    inputstore = po.pofile(inputfile)
-    if not convert.should_output_store(inputstore, outputthreshold):
-        return 0
-
-    convertor = po2sub(templatefile, inputstore, includefuzzy)
-    outputstring = convertor.convert_store()
-    outputfile.write(outputstring)
-    return 1
+def run_converter(inputfile, outputfile, templatefile, includefuzzy=False,
+                  outputthreshold=None):
+    """Wrapper around converter."""
+    return po2sub(inputfile, outputfile, templatefile, includefuzzy,
+                  outputthreshold).run()
 
 
 formats = {
-    ("po", "srt"): ("srt", convertsub),
-    ("po", "sub"): ("sub", convertsub),
-    ("po", "ssa"): ("ssa", convertsub),
-    ("po", "ass"): ("ass", convertsub),
+    ("po", "srt"): ("srt", run_converter),
+    ("po", "sub"): ("sub", run_converter),
+    ("po", "ssa"): ("ssa", run_converter),
+    ("po", "ass"): ("ass", run_converter),
 }
 
 
