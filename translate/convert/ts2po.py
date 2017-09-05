@@ -27,59 +27,91 @@ from translate.convert import convert
 from translate.storage import po, ts
 
 
+class ConverterCantMergeError(Exception):
+    pass
+
+
 class ts2po(object):
+    """Convert one or two Qt Linguist (.ts) files to a single PO file."""
 
-    def __init__(self, input_file, duplicatestyle="msgctxt", pot=False):
-        self.duplicatestyle = duplicatestyle
-        self.pot = pot
-        self.source_store = ts.QtTsParser(input_file)
+    SourceStoreClass = ts.QtTsParser
+    TargetStoreClass = po.pofile
+    TargetUnitClass = po.pounit
 
-    def convertmessage(self, contextname, messagenum, source, target, msgcomments, transtype):
-        """makes a pounit from the given message"""
-        thepo = po.pounit(encoding="UTF-8")
-        thepo.addlocation("%s#%d" % (contextname, messagenum))
-        thepo.source = source
-        if not self.pot:
-            thepo.target = target
+    def __init__(self, input_file, output_file, template_file=None,
+                 blank_msgstr=False, duplicate_style="msgctxt"):
+        """Initialize the converter."""
+        self.blank_msgstr = blank_msgstr
+        self.duplicate_style = duplicate_style
+
+        self.output_file = output_file
+        self.source_store = self.SourceStoreClass(input_file)
+        self.target_store = self.TargetStoreClass()
+        self.template_store = None
+
+        if template_file is not None:
+            self.template_store = self.SourceStoreClass(template_file)
+
+    def convert_unit(self, contextname, messagenum, message):
+        """Convert a source format unit to a target format unit."""
+        source = self.source_store.getmessagesource(message)
+        target = self.source_store.getmessagetranslation(message)
+        msgcomments = self.source_store.getmessagecomment(message)
+        transtype = self.source_store.getmessagetype(message)
+        target_unit = self.TargetUnitClass(encoding="UTF-8")
+        target_unit.addlocation("%s#%d" % (contextname, messagenum))
+        target_unit.source = source
+        if not self.blank_msgstr:
+            target_unit.target = target
         if len(msgcomments) > 0:
-            thepo.addnote(msgcomments)
-        if transtype == "unfinished" and thepo.istranslated():
-            thepo.markfuzzy()
+            target_unit.addnote(msgcomments)
+        if transtype == "unfinished" and target_unit.istranslated():
+            target_unit.markfuzzy()
         if transtype == "obsolete":
             # This should use the Gettext obsolete method but it would require quite a bit of work
-            thepo.addnote("(obsolete)", origin="developer")
+            target_unit.addnote("(obsolete)", origin="developer")
             # using the fact that -- quote -- "(this is nonsense)"
-        return thepo
+        return target_unit
 
-    def convertfile(self):
-        """converts a .ts file to .po format"""
-        thetargetfile = po.pofile()
+    def convert_store(self):
+        """Convert a single source format file to a target format file."""
         for contextname, messages in self.source_store.iteritems():
             messagenum = 0
             for message in messages:
                 messagenum += 1
-                source = self.source_store.getmessagesource(message)
-                translation = self.source_store.getmessagetranslation(message)
-                comment = self.source_store.getmessagecomment(message)
-                transtype = self.source_store.getmessagetype(message)
-                thepo = self.convertmessage(contextname, messagenum, source, translation, comment, transtype)
-                thetargetfile.addunit(thepo)
-        thetargetfile.removeduplicates(self.duplicatestyle)
-        return thetargetfile
+                target_unit = self.convert_unit(contextname, messagenum,
+                                                message)
+                self.target_store.addunit(target_unit)
+
+    def merge_stores(self):
+        """Convert two source format files to a target format file."""
+        raise ConverterCantMergeError
+
+    def run(self):
+        """Run the converter."""
+        if self.template_store is None:
+            self.convert_store()
+        else:
+            self.merge_stores()
+
+        self.target_store.removeduplicates(self.duplicate_style)
+
+        if self.target_store.isempty():
+            return 0
+
+        self.target_store.serialize(self.output_file)
+        return 1
 
 
-def convertts(inputfile, outputfile, templates, pot=False, duplicatestyle="msgctxt"):
-    """reads in stdin using fromfileclass, converts using convertorclass, writes to stdout"""
-    convertor = ts2po(inputfile, duplicatestyle=duplicatestyle, pot=pot)
-    outputstore = convertor.convertfile()
-    if outputstore.isempty():
-        return 0
-    outputstore.serialize(outputfile)
-    return 1
+def run_converter(inputfile, outputfile, templates, pot=False,
+                  duplicatestyle="msgctxt"):
+    """Wrapper around converter."""
+    return ts2po(inputfile, outputfile, templates, blank_msgstr=pot,
+                 duplicate_style=duplicatestyle).run()
 
 
 formats = {
-    "ts": ("po", convertts)
+    "ts": ("po", run_converter)
 }
 
 
