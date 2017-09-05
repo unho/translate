@@ -23,6 +23,7 @@ See: http://docs.translatehouse.org/projects/translate-toolkit/en/latest/command
 for examples and usage instructions.
 """
 
+from translate.convert import convert
 from translate.storage import po, tiki
 
 
@@ -61,19 +62,19 @@ def convertpo(inputfile, outputfile, template=None):
     """
     inputstore = po.pofile(inputfile)
     if inputstore.isempty():
-        return False
+        return 0
     convertor = po2tiki()
     outputstore = convertor.convertstore(inputstore)
     outputstore.serialize(outputfile)
-    return True
+    return 1
+
+
+formats = {
+    "po": ("tiki", convertpo),
+}
 
 
 def main(argv=None):
-    """Will convert from .po to tiki style .php"""
-    from translate.convert import convert
-
-    formats = {"po": ("tiki", convertpo)}
-
     parser = convert.ConvertOptionParser(formats, description=__doc__)
     parser.run(argv)
 
