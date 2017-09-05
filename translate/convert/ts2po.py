@@ -23,14 +23,16 @@ See: http://docs.translatehouse.org/projects/translate-toolkit/en/latest/command
 for examples and usage instructions.
 """
 
+from translate.convert import convert
 from translate.storage import po, ts
 
 
 class ts2po(object):
 
-    def __init__(self, duplicatestyle="msgctxt", pot=False):
+    def __init__(self, input_file, duplicatestyle="msgctxt", pot=False):
         self.duplicatestyle = duplicatestyle
         self.pot = pot
+        self.source_store = ts.QtTsParser(input_file)
 
     def convertmessage(self, contextname, messagenum, source, target, msgcomments, transtype):
         """makes a pounit from the given message"""
@@ -49,19 +51,17 @@ class ts2po(object):
             # using the fact that -- quote -- "(this is nonsense)"
         return thepo
 
-    def convertfile(self, inputfile):
+    def convertfile(self):
         """converts a .ts file to .po format"""
-        tsfile = ts.QtTsParser(inputfile)
         thetargetfile = po.pofile()
-
-        for contextname, messages in tsfile.iteritems():
+        for contextname, messages in self.source_store.iteritems():
             messagenum = 0
             for message in messages:
                 messagenum += 1
-                source = tsfile.getmessagesource(message)
-                translation = tsfile.getmessagetranslation(message)
-                comment = tsfile.getmessagecomment(message)
-                transtype = tsfile.getmessagetype(message)
+                source = self.source_store.getmessagesource(message)
+                translation = self.source_store.getmessagetranslation(message)
+                comment = self.source_store.getmessagecomment(message)
+                transtype = self.source_store.getmessagetype(message)
                 thepo = self.convertmessage(contextname, messagenum, source, translation, comment, transtype)
                 thetargetfile.addunit(thepo)
         thetargetfile.removeduplicates(self.duplicatestyle)
@@ -70,18 +70,26 @@ class ts2po(object):
 
 def convertts(inputfile, outputfile, templates, pot=False, duplicatestyle="msgctxt"):
     """reads in stdin using fromfileclass, converts using convertorclass, writes to stdout"""
-    convertor = ts2po(duplicatestyle=duplicatestyle, pot=pot)
-    outputstore = convertor.convertfile(inputfile)
+    convertor = ts2po(inputfile, duplicatestyle=duplicatestyle, pot=pot)
+    outputstore = convertor.convertfile()
     if outputstore.isempty():
         return 0
     outputstore.serialize(outputfile)
     return 1
 
 
+formats = {
+    "ts": ("po", convertts)
+}
+
+
 def main(argv=None):
-    from translate.convert import convert
-    formats = {"ts": ("po", convertts)}
-    parser = convert.ConvertOptionParser(formats, usepots=True, description=__doc__)
+    parser = convert.ConvertOptionParser(formats, usepots=True,
+                                         description=__doc__)
     parser.add_duplicates_option()
     parser.passthrough.append("pot")
     parser.run(argv)
+
+
+if __name__ == '__main__':
+    main()
