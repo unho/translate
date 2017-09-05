@@ -2,14 +2,14 @@
 #
 # Copyright 2007-2009 Zuza Software Foundation
 #
-# This file is part of the Translate Toolkit.
+# This file is part of translate.
 #
-# This program is free software; you can redistribute it and/or modify
+# translate is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# translate is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -25,6 +25,7 @@ for examples and usage instructions.
 
 import logging
 
+from translate.convert import convert
 from translate.storage import po, rc
 
 
@@ -34,7 +35,20 @@ logger = logging.getLogger(__name__)
 class rc2po(object):
     """Convert a .rc file to a .po file for handling the translation."""
 
-    def convert_store(self, input_store, duplicatestyle="msgctxt"):
+    def convert_unit(self, unit):
+        """Converts a .rc unit to a .po unit. Returns None if empty or not for
+        translation.
+        """
+        if unit is None:
+            return None
+        # escape unicode
+        target_unit = po.pounit(encoding="UTF-8")
+        target_unit.addlocation("".join(unit.getlocations()))
+        target_unit.source = unit.source
+        target_unit.target = ""
+        return target_unit
+
+    def convert_store(self, input_store):
         """converts a .rc file to a .po file..."""
         output_store = po.pofile()
         output_header = output_store.init_headers(
@@ -43,13 +57,12 @@ class rc2po(object):
         )
         output_header.addnote("extracted from %s" % input_store.filename, "developer")
         for input_unit in input_store.units:
-            output_unit = self.convert_unit(input_unit, "developer")
+            output_unit = self.convert_unit(input_unit)
             if output_unit is not None:
                 output_store.addunit(output_unit)
-        output_store.removeduplicates(duplicatestyle)
         return output_store
 
-    def merge_store(self, template_store, input_store, blankmsgstr=False, duplicatestyle="msgctxt"):
+    def merge_stores(self, template_store, input_store, blankmsgstr=False):
         """converts two .rc files to a .po file..."""
         output_store = po.pofile()
         output_header = output_store.init_headers(
@@ -59,12 +72,12 @@ class rc2po(object):
         output_header.addnote("extracted from %s, %s" % (template_store.filename, input_store.filename), "developer")
         input_store.makeindex()
         for template_unit in template_store.units:
-            origpo = self.convert_unit(template_unit, "developer")
+            origpo = self.convert_unit(template_unit)
             # try and find a translation of the same name...
             template_unit_name = "".join(template_unit.getlocations())
             if template_unit_name in input_store.locationindex:
                 translatedrc = input_store.locationindex[template_unit_name]
-                translatedpo = self.convert_unit(translatedrc, "translator")
+                translatedpo = self.convert_unit(translatedrc)
             else:
                 translatedpo = None
             # if we have a valid po unit, get the translation and add it...
@@ -75,21 +88,7 @@ class rc2po(object):
             elif translatedpo is not None:
                 logging.error("error converting original rc definition %s",
                               template_unit.name)
-        output_store.removeduplicates(duplicatestyle)
         return output_store
-
-    def convert_unit(self, input_unit, commenttype):
-        """Converts a .rc unit to a .po unit. Returns None if empty or not for
-        translation.
-        """
-        if input_unit is None:
-            return None
-        # escape unicode
-        output_unit = po.pounit(encoding="UTF-8")
-        output_unit.addlocation("".join(input_unit.getlocations()))
-        output_unit.source = input_unit.source
-        output_unit.target = ""
-        return output_unit
 
 
 def convertrc(input_file, output_file, template_file, pot=False, duplicatestyle="msgctxt", charset=None, lang=None, sublang=None):
@@ -97,21 +96,28 @@ def convertrc(input_file, output_file, template_file, pot=False, duplicatestyle=
     input_store = rc.rcfile(input_file, lang, sublang, encoding=charset)
     convertor = rc2po()
     if template_file is None:
-        output_store = convertor.convert_store(input_store, duplicatestyle=duplicatestyle)
+        output_store = convertor.convert_store(input_store)
     else:
         template_store = rc.rcfile(template_file, lang, sublang, encoding=charset)
-        output_store = convertor.merge_store(template_store, input_store, blankmsgstr=pot, duplicatestyle=duplicatestyle)
+        output_store = convertor.merge_stores(template_store, input_store, blankmsgstr=pot)
+    output_store.removeduplicates(duplicatestyle)
     if output_store.isempty():
         return 0
     output_store.serialize(output_file)
     return 1
 
 
+formats = {
+    "rc": ("po", convertrc),
+    ("rc", "rc"): ("po", convertrc),
+    "nls": ("po", convertrc),
+    ("nls", "nls"): ("po", convertrc)
+}
+
+
 def main(argv=None):
-    from translate.convert import convert
-    formats = {"rc": ("po", convertrc), ("rc", "rc"): ("po", convertrc),
-               "nls": ("po", convertrc), ("nls", "nls"): ("po", convertrc)}
-    parser = convert.ConvertOptionParser(formats, usetemplates=True, usepots=True, description=__doc__)
+    parser = convert.ConvertOptionParser(formats, usetemplates=True,
+                                         usepots=True, description=__doc__)
     DEFAULTCHARSET = "cp1252"
     parser.add_option(
         "", "--charset", dest="charset", default=DEFAULTCHARSET,
