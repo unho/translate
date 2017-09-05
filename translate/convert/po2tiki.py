@@ -28,49 +28,64 @@ from translate.storage import po, tiki
 
 
 class po2tiki(object):
+    """Convert a PO file and a template TikiWiki file to a TikiWiki file."""
 
-    def convertstore(self, thepofile):
-        """Converts a given (parsed) po file to a tiki file.
+    SourceStoreClass = po.pofile
+    TargetStoreClass = tiki.TikiStore
+    TargetUnitClass = tiki.TikiUnit
 
-        :param thepofile: a pofile pre-loaded with input data
+    def __init__(self, input_file, output_file, template_file=None):
+        """Initialize the converter."""
+        self.source_store = self.SourceStoreClass(input_file)
+        self.output_file = output_file
+        self.target_store = self.TargetStoreClass()
+
+    def convert_unit(self, unit):
+        """Convert a source format unit to a target format unit."""
+        target_unit = self.TargetUnitClass(unit.source)
+        target_unit.target = unit.target
+        locations = unit.getlocations()
+        if locations:
+            target_unit.addlocations(locations)
+        # If a word is "untranslated" but the target isn't empty and isn't the
+        # same as the source it's been translated and we switch it. This is an
+        # assumption but should remain true as long as these scripts are used.
+        clean_location = (target_unit.getlocations() == ["untranslated"] and
+                          unit.source != unit.target and
+                          unit.target != "")
+        if clean_location:
+            target_unit.location = []
+            target_unit.addlocation("translated")
+        return target_unit
+
+    def convert_store(self):
+        """Convert a source file to a target file using a template file.
+
+        Source file is in source format, while target and template files use
+        target format.
         """
-        thetargetfile = tiki.TikiStore()
-        for unit in thepofile.units:
-            if not (unit.isblank() or unit.isheader()):
-                newunit = tiki.TikiUnit(unit.source)
-                newunit.target = unit.target
-                locations = unit.getlocations()
-                if locations:
-                    newunit.addlocations(locations)
-                # If a word is "untranslated" but the target isn't empty and isn't the same as the source
-                # it's been translated and we switch it. This is an assumption but should remain true as long
-                # as these scripts are used.
-                if newunit.getlocations() == ["untranslated"] and unit.source != unit.target and unit.target != "":
-                    newunit.location = []
-                    newunit.addlocation("translated")
+        for source_unit in self.source_store.units:
+            if source_unit.isblank() or source_unit.isheader():
+                continue
+            self.target_store.addunit(self.convert_unit(source_unit))
 
-                thetargetfile.addunit(newunit)
-        return thetargetfile
+    def run(self):
+        """Run the converter."""
+        if self.source_store.isempty():
+            return 0
+
+        self.convert_store()
+        self.target_store.serialize(self.output_file)
+        return 1
 
 
-def convertpo(inputfile, outputfile, template=None):
-    """Converts from po file format to tiki.
-
-    :param inputfile: file handle of the source
-    :param outputfile: file handle to write to
-    :param template: unused
-    """
-    inputstore = po.pofile(inputfile)
-    if inputstore.isempty():
-        return 0
-    convertor = po2tiki()
-    outputstore = convertor.convertstore(inputstore)
-    outputstore.serialize(outputfile)
-    return 1
+def run_converter(inputfile, outputfile, template=None):
+    """Wrapper around converter."""
+    return po2tiki(inputfile, outputfile, templatefile).run()
 
 
 formats = {
-    "po": ("tiki", convertpo),
+    "po": ("tiki", run_converter),
 }
 
 
