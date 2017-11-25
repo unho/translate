@@ -52,10 +52,10 @@ class ical2po(object):
     def convert_unit(self, unit):
         """Convert a source format unit to a target format unit."""
         target_unit = self.TargetUnitClass(encoding="UTF-8")
-        target_unit.addlocation("".join(unit.getlocations()))
         target_unit.addnote(unit.getnotes("developer"), "developer")
         target_unit.source = unit.source
         target_unit.target = ""
+        target_unit.setid(unit.getid())
         return target_unit
 
     def convert_store(self):
@@ -75,12 +75,12 @@ class ical2po(object):
         for template_unit in self.template_store.units:
             target_unit = self.convert_unit(template_unit)
 
-            template_unit_name = "".join(template_unit.getlocations())
+            template_unit_id = template_unit.getid()
             add_translation = (
                 not self.blank_msgstr and
-                template_unit_name in self.source_store.locationindex)
+                template_unit_id in self.source_store.locationindex)
             if add_translation:
-                source_unit = self.source_store.locationindex[template_unit_name]
+                source_unit = self.source_store.locationindex[template_unit_id]
                 target_unit.target = source_unit.source
             self.target_store.addunit(target_unit)
 

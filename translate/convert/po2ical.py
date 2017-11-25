@@ -62,15 +62,16 @@ class po2ical(object):
         target format.
         """
         for template_unit in self.template_store.units:
-            for location in template_unit.getlocations():
-                if location in self.source_store.locationindex:
-                    source_unit = self.source_store.locationindex[location]
-                    if source_unit.isfuzzy() and not self.include_fuzzy:
-                        template_unit.target = template_unit.source
-                    else:
-                        template_unit.target = source_unit.target
-                else:
+            unit_id = template_unit.getid()
+
+            if unit_id in self.source_store.locationindex:
+                source_unit = self.source_store.locationindex[unit_id]
+                if source_unit.isfuzzy() and not self.include_fuzzy:
                     template_unit.target = template_unit.source
+                else:
+                    template_unit.target = source_unit.target
+            else:
+                template_unit.target = template_unit.source
 
     def run(self):
         """Run the converter."""

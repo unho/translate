@@ -63,17 +63,17 @@ from translate.storage import base
 class icalunit(base.TranslationUnit):
     """An ical entry that is translatable"""
 
-    def __init__(self, source=None, **kwargs):
-        self.location = ""
+    def __init__(self, source=None, id='', **kwargs):
+        self.id = id
         if source:
             self.source = source
         super(icalunit, self).__init__(source)
 
-    def addlocation(self, location):
-        self.location = location
+    def getid(self):
+        return self.id
 
-    def getlocations(self):
-        return [self.location]
+    def setid(self, new_id):
+        self.id = new_id
 
 
 class icalfile(base.TranslationStore):
@@ -92,16 +92,15 @@ class icalfile(base.TranslationStore):
     def serialize(self, out):
         _outicalfile = self._icalfile
         for unit in self.units:
-            for location in unit.getlocations():
-                match = re.match('\\[(?P<uid>.+)\\](?P<property>.+)', location)
-                for component in self._icalfile.components():
-                    if component.name != "VEVENT":
-                        continue
-                    if component.uid.value != match.groupdict()['uid']:
-                        continue
-                    for property in component.getChildren():
-                        if property.name == match.groupdict()['property']:
-                            property.value = unit.target
+            match = re.match('\\[(?P<uid>.+)\\](?P<property>.+)', unit.getid())
+            for component in self._icalfile.components():
+                if component.name != "VEVENT":
+                    continue
+                if component.uid.value != match.groupdict()['uid']:
+                    continue
+                for property in component.getChildren():
+                    if property.name == match.groupdict()['property']:
+                        property.value = unit.target
 
         if _outicalfile:
             _outicalfile.serialize(out)
@@ -128,4 +127,4 @@ class icalfile(base.TranslationStore):
                     if property.name in ('SUMMARY', 'DESCRIPTION', 'COMMENT', 'LOCATION'):
                         newunit = self.addsourceunit(property.value)
                         newunit.addnote("Start date: %s" % component.dtstart.value)
-                        newunit.addlocation("[%s]%s" % (component.uid.value, property.name))
+                        newunit.setid("[%s]%s" % (component.uid.value, property.name))
