@@ -25,103 +25,123 @@ for examples and usage instructions.
 
 import logging
 
-from translate.storage import po
+from translate.convert import convert
+from translate.storage import jsonl10n, po
 
 
 logger = logging.getLogger(__name__)
 
 
 class json2po(object):
-    """Convert a JSON file to a PO file"""
+    """Convert one or two JSON files to a single PO file."""
 
-    def convert_store(self, input_store, duplicatestyle="msgctxt"):
-        """Converts a JSON file to a PO file"""
-        output_store = po.pofile()
-        output_header = output_store.header()
-        output_header.addnote("extracted from %s" % input_store.filename,
-                              "developer")
-        for input_unit in input_store.units:
-            output_unit = self.convert_unit(input_unit, "developer")
-            if output_unit is not None:
-                output_store.addunit(output_unit)
-        output_store.removeduplicates(duplicatestyle)
-        return output_store
+    SourceStoreClass = jsonl10n.JsonFile
+    TargetStoreClass = po.pofile
+    TargetUnitClass = po.pounit
 
-    def merge_store(self, template_store, input_store, blankmsgstr=False,
-                    duplicatestyle="msgctxt"):
-        """Converts two JSON files to a PO file"""
-        output_store = po.pofile()
-        output_header = output_store.header()
-        output_header.addnote("extracted from %s, %s" % (template_store.filename,
-                                                         input_store.filename),
-                              "developer")
+    def __init__(self, input_file, output_file, template_file=None,
+                 blank_msgstr=False, duplicate_style="msgctxt",
+                 dialect="default", filter=None):
+        """Initialize the converter."""
+        self.blank_msgstr = blank_msgstr
+        self.duplicate_style = duplicate_style
 
-        input_store.makeindex()
-        for template_unit in template_store.units:
-            origpo = self.convert_unit(template_unit, "developer")
-            # try and find a translation of the same name...
+        if filter is not None:
+            filter = filter.split(',')
+
+        self.output_file = output_file
+        self.source_store = self.SourceStoreClass(input_file, filter=filter)
+        self.target_store = self.TargetStoreClass()
+        self.template_store = None
+
+        if template_file is not None:
+            self.template_store = self.SourceStoreClass(template_file)
+
+        self.source_store.makeindex()
+
+        self.extraction_msg = None
+
+    def convert_unit(self, unit):
+        """Convert a source format unit to a target format unit."""
+        if unit is None:
+            return None
+
+        target_unit = self.TargetUnitClass(encoding="UTF-8")
+        target_unit.addlocation(unit.getid())
+        target_unit.source = unit.source
+        target_unit.target = ""
+        return target_unit
+
+    def convert_store(self):
+        """Convert a single source format file to a target format file."""
+        self.extraction_msg = "extracted from %s" % self.source_store.filename
+
+        for source_unit in self.source_store.units:
+            if source_unit is None:
+                continue
+            target_unit = self.convert_unit(source_unit)
+            self.target_store.addunit(target_unit)
+
+    def merge_stores(self):
+        """Convert two source format files to a target format file."""
+        self.extraction_msg = ("extracted from %s, %s" %
+                               (self.template_store.filename,
+                                self.source_store.filename))
+
+        for template_unit in self.template_store.units:
+            target_unit = self.convert_unit(template_unit)
+
+            # Try and find a translation of the same name...
             template_unit_name = "".join(template_unit.getlocations())
-            if template_unit_name in input_store.locationindex:
-                translatedjson = input_store.locationindex[template_unit_name]
-                translatedpo = self.convert_unit(translatedjson, "translator")
-            else:
-                translatedpo = None
-            # if we have a valid po unit, get the translation and add it...
-            if origpo is not None:
-                if translatedpo is not None and not blankmsgstr:
-                    origpo.target = translatedpo.source
-                output_store.addunit(origpo)
+            translatedpo = None
+            if template_unit_name in self.source_store.locationindex:
+                translatedjson = self.source_store.locationindex[template_unit_name]
+                translatedpo = self.convert_unit(translatedjson)
+
+            # If we have a valid po unit, get the translation and add it...
+            if target_unit is not None:
+                if translatedpo is not None and not self.blank_msgstr:
+                    target_unit.target = translatedpo.source
+                self.target_store.addunit(target_unit)
             elif translatedpo is not None:
                 logger.error("error converting original JSON definition %s",
-                             origpo.name)
-        output_store.removeduplicates(duplicatestyle)
-        return output_store
+                             target_unit.name)
 
-    def convert_unit(self, input_unit, commenttype):
-        """Converts a JSON unit to a PO unit
+    def run(self):
+        """Run the converter."""
+        if self.template_store is None:
+            self.convert_store()
+        else:
+            self.merge_stores()
 
-        :return: None if empty or not for translation
-        """
-        if input_unit is None:
-            return None
-        # escape unicode
-        output_unit = po.pounit(encoding="UTF-8")
-        output_unit.addlocation(input_unit.getid())
-        output_unit.source = input_unit.source
-        output_unit.target = ""
-        return output_unit
+        if self.extraction_msg:
+            self.target_store.header().addnote(self.extraction_msg,
+                                               "developer")
+
+        self.target_store.removeduplicates(self.duplicate_style)
+
+        if self.target_store.isempty():
+            return 0
+
+        self.target_store.serialize(self.output_file)
+        return 1
 
 
-def convertjson(input_file, output_file, template_file, pot=False,
-                duplicatestyle="msgctxt", dialect="default", filter=None):
-    """Reads in *input_file* using jsonl10n, converts using :class:`json2po`,
-    writes to *output_file*.
-    """
-    from translate.storage import jsonl10n
-    if filter is not None:
-        filter = filter.split(',')
-    input_store = jsonl10n.JsonFile(input_file, filter=filter)
-    convertor = json2po()
-    if template_file is None:
-        output_store = convertor.convert_store(input_store,
-                                               duplicatestyle=duplicatestyle)
-    else:
-        template_store = jsonl10n.JsonFile(template_file)
-        output_store = convertor.merge_store(template_store, input_store,
-                                             blankmsgstr=pot,
-                                             duplicatestyle=duplicatestyle)
-    if output_store.isempty():
-        return 0
-    output_store.serialize(output_file)
-    return 1
+def run_converter(input_file, output_file, template_file, pot=False,
+                  duplicatestyle="msgctxt", dialect="default", filter=None):
+    """Wrapper around converter."""
+    return json2po(input_file, output_file, template_file, blank_msgstr=pot,
+                   duplicate_style=duplicatestyle, dialect=dialect,
+                   filter=filter).run()
+
+
+formats = {
+    "json": ("po", run_converter),
+    ("json", "json"): ("po", run_converter),
+}
 
 
 def main(argv=None):
-    from translate.convert import convert
-    formats = {
-        "json": ("po", convertjson),
-        ("json", "json"): ("po", convertjson),
-    }
     parser = convert.ConvertOptionParser(formats, usetemplates=True,
                                          usepots=True, description=__doc__)
     parser.add_option(
